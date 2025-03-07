@@ -8,6 +8,7 @@
         "openai",
         "ai",
         "assistant",
+        "vector-store",
         "category/ai"
     ],
     "config": {
@@ -153,6 +154,146 @@
                 "object",
                 "name",
                 "model"
+            ]
+        },
+        "openai:index:VectorStore": {
+            "isComponent": false,
+            "inputProperties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the vector store."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the vector store."
+                },
+                "fileIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of file IDs to be used in the vector store."
+                },
+                "expiresAfter": {
+                    "type": "object",
+                    "properties": {
+                        "anchor": {
+                            "type": "string",
+                            "description": "The anchor point for the expiration time. Currently only 'last_active_at' is supported."
+                        },
+                        "days": {
+                            "type": "number",
+                            "description": "The number of days after which the vector store will expire."
+                        }
+                    },
+                    "required": ["anchor", "days"],
+                    "description": "The expiration policy for the vector store."
+                },
+                "chunkingStrategy": {
+                    "type": "object",
+                    "description": "The chunking strategy used to chunk files."
+                }
+            },
+            "requiredInputs": [
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The unique identifier for the vector store."
+                },
+                "createdAt": {
+                    "type": "number",
+                    "description": "The Unix timestamp (in seconds) for when the vector store was created."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the vector store."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the vector store."
+                },
+                "fileIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of file IDs used in the vector store."
+                },
+                "expiresAfter": {
+                    "type": "object",
+                    "properties": {
+                        "anchor": {
+                            "type": "string",
+                            "description": "The anchor point for the expiration time. Currently only 'last_active_at' is supported."
+                        },
+                        "days": {
+                            "type": "number",
+                            "description": "The number of days after which the vector store will expire."
+                        }
+                    },
+                    "description": "The expiration policy for the vector store."
+                },
+                "expiresAt": {
+                    "type": "number",
+                    "description": "The Unix timestamp (in seconds) for when the vector store will expire."
+                },
+                "lastActiveAt": {
+                    "type": "number",
+                    "description": "The Unix timestamp (in seconds) for when the vector store was last active."
+                },
+                "status": {
+                    "type": "string",
+                    "description": "The status of the vector store (e.g., 'completed', 'in_progress')."
+                },
+                "object": {
+                    "type": "string",
+                    "description": "The object type, which is always 'vector_store'."
+                },
+                "usageBytes": {
+                    "type": "number",
+                    "description": "The number of bytes used by the vector store."
+                },
+                "fileCounts": {
+                    "type": "object",
+                    "properties": {
+                        "total": {
+                            "type": "number",
+                            "description": "The total number of files in the vector store."
+                        },
+                        "completed": {
+                            "type": "number",
+                            "description": "The number of files that have been successfully processed."
+                        },
+                        "inProgress": {
+                            "type": "number",
+                            "description": "The number of files that are currently being processed."
+                        },
+                        "failed": {
+                            "type": "number",
+                            "description": "The number of files that failed to process."
+                        },
+                        "cancelled": {
+                            "type": "number",
+                            "description": "The number of files that were cancelled during processing."
+                        }
+                    },
+                    "description": "Counts of files in the vector store by status."
+                }
+            },
+            "required": [
+                "id",
+                "createdAt",
+                "name",
+                "status",
+                "object"
             ]
         }
     },

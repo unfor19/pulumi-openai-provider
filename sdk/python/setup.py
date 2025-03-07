@@ -23,7 +23,7 @@ setup(name='pulumi_openai',
       description="A Pulumi provider for managing OpenAI resources.",
       long_description=readme(),
       long_description_content_type='text/markdown',
-      keywords='pulumi openai ai assistant category/ai',
+      keywords='pulumi openai ai assistant vector-store category/ai',
       packages=find_packages(),
       package_data={
           'pulumi_openai': [
