@@ -24,7 +24,11 @@ export class Provider implements provider.Provider {
     async construct(name: string, type: string, inputs: pulumi.Inputs, options: pulumi.ComponentResourceOptions): Promise<provider.ConstructResult> {
         switch (type) {
             case "openai:index:Assistant":
-                return await constructAssistant(this.openaiClient, name, inputs, options);
+                // Just return a dummy result, the actual resource is created by the Assistant class
+                return {
+                    urn: pulumi.createUrn(name, "openai:index:Assistant"),
+                    state: inputs,
+                };
             default:
                 throw new Error(`Unknown resource type ${type}`);
         }
@@ -185,28 +189,4 @@ export class Provider implements provider.Provider {
             throw new Error("Unknown error deleting OpenAI Assistant");
         }
     }
-}
-
-async function constructAssistant(client: OpenAI, name: string, inputs: pulumi.Inputs, options: pulumi.ComponentResourceOptions): Promise<provider.ConstructResult> {
-    // Create the Assistant resource
-    const assistant = new Assistant(name, inputs as AssistantArgs, options);
-    
-    // Return the URN and state
-    return {
-        urn: assistant.urn,
-        state: {
-            id: assistant.id,
-            createdAt: assistant.createdAt,
-            object: assistant.object,
-            name: assistant.name,
-            instructions: assistant.instructions,
-            model: assistant.model,
-            tools: assistant.tools,
-            fileIds: assistant.fileIds,
-            metadata: assistant.metadata,
-            temperature: assistant.temperature,
-            topP: assistant.topP,
-            responseFormat: assistant.responseFormat,
-        },
-    };
 } 

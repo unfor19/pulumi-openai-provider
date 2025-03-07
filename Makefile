@@ -204,9 +204,11 @@ docker-run: ## Run the Docker container
 ###Pulumi Provider
 ##---
 
-dependencies-install: ## Install all provider dependencies
+dependencies-install: ## Install all provider and SDK dependencies
 	@echo "Installing provider dependencies..."
 	cd provider/cmd/${PROVIDER} && yarn install
+	@echo "Installing code generator dependencies..."
+	cd provider/cmd/pulumi-gen-openai && go mod tidy
 	@echo "Dependencies installed successfully."
 
 # Ensure all dependencies are installed
@@ -217,6 +219,29 @@ generate:: gen_go_sdk gen_dotnet_sdk gen_nodejs_sdk gen_python_sdk ## Generate S
 build:: build_provider build_dotnet_sdk build_nodejs_sdk build_python_sdk ## Build provider and SDKs
 
 install:: install_provider install_dotnet_sdk install_nodejs_sdk ## Install provider and SDKs
+
+# Pulumi operations
+pulumi-login: ## Login to Pulumi
+	pulumi login
+
+example-simple-install: install_provider ## Install dependencies for the simple example and link the provider
+	cd ${WORKING_DIR}/provider/cmd/${PROVIDER}/bin && yarn link && \
+	cd ${WORKING_DIR}/examples/simple && \
+		yarn install && \
+		yarn link "@pulumi/openai" && \
+		yarn tsc --version
+
+pulumi-stack-init: ## Initialize a new Pulumi stack
+	cd examples/simple && pulumi stack init dev
+
+pulumi-preview: ## Preview Pulumi changes
+	cd examples/simple && pulumi preview
+
+pulumi-up: ## Apply Pulumi changes
+	cd examples/simple && pulumi up
+
+pulumi-destroy: ## Destroy Pulumi resources
+	cd examples/simple && pulumi destroy
 
 # Provider
 build_provider:: ensure ## Build the provider

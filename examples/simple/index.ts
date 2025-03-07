@@ -1,8 +1,13 @@
-import * as xyz from "@pulumi/xyz";
+import * as pulumi from "@pulumi/pulumi";
+import { Assistant } from "@pulumi/openai";
 
-const page = new xyz.StaticPage("page", {
-    indexContent: "<html><body><p>Hello world!</p></body></html>",
+// Create an OpenAI Assistant
+const assistant = new Assistant("test-assistant", {
+    name: "Test Assistant",
+    model: "gpt-4-turbo-preview",
+    instructions: "You are a helpful assistant that specializes in testing Pulumi providers.",
+    tools: [{ type: "code_interpreter" }],
 });
 
-export const bucket = page.bucket;
-export const url = page.websiteUrl;
+// Export the assistant ID
+export const assistantId = assistant.id;

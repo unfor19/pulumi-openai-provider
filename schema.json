@@ -14,17 +14,10 @@
         "variables": {
             "apiKey": {
                 "type": "string",
-                "description": "The OpenAI API key used to authenticate with the OpenAI API. Can also be set using the OPENAI_API_KEY environment variable."
+                "description": "The OpenAI API key.",
+                "secret": true
             }
         },
-        "defaults": [
-            {
-                "environment": [
-                    "OPENAI_API_KEY"
-                ],
-                "name": "apiKey"
-            }
-        ],
         "required": [
             "apiKey"
         ]
