@@ -1,49 +1,159 @@
 {
-    "name": "xyz",
+    "name": "openai",
+    "displayName": "OpenAI",
+    "description": "A Pulumi provider for managing OpenAI resources.",
+    "publisher": "Pulumi",
+    "keywords": [
+        "pulumi",
+        "openai",
+        "ai",
+        "assistant",
+        "category/ai"
+    ],
+    "config": {
+        "variables": {
+            "apiKey": {
+                "type": "string",
+                "description": "The OpenAI API key used to authenticate with the OpenAI API. Can also be set using the OPENAI_API_KEY environment variable."
+            }
+        },
+        "defaults": [
+            {
+                "environment": [
+                    "OPENAI_API_KEY"
+                ],
+                "name": "apiKey"
+            }
+        ],
+        "required": [
+            "apiKey"
+        ]
+    },
     "resources": {
-        "xyz:index:StaticPage": {
+        "openai:index:Assistant": {
             "isComponent": true,
             "inputProperties": {
-                "indexContent": {
+                "name": {
                     "type": "string",
-                    "description": "The HTML content for index.html."
+                    "description": "The name of the assistant."
+                },
+                "instructions": {
+                    "type": "string",
+                    "description": "The system instructions that the assistant uses."
+                },
+                "model": {
+                    "type": "string",
+                    "description": "The model that the assistant will use (e.g., gpt-4, gpt-3.5-turbo)."
+                },
+                "tools": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "The type of tool (e.g., code_interpreter, retrieval, function)."
+                            }
+                        }
+                    },
+                    "description": "A list of tools enabled on the assistant."
+                },
+                "fileIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of file IDs attached to this assistant."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the assistant."
                 }
             },
             "requiredInputs": [
-                "indexContent"
+                "name",
+                "model"
             ],
             "properties": {
-                "bucket": {
-                    "$ref": "/aws/v4.0.0/schema.json#/resources/aws:s3%2Fbucket:Bucket",
-                    "description": "The bucket resource."
-                },
-                "websiteUrl": {
+                "id": {
                     "type": "string",
-                    "description": "The website URL."
+                    "description": "The unique identifier for the assistant."
+                },
+                "createdAt": {
+                    "type": "number",
+                    "description": "The Unix timestamp (in seconds) for when the assistant was created."
+                },
+                "object": {
+                    "type": "string",
+                    "description": "The object type, which is always 'assistant'."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the assistant."
+                },
+                "instructions": {
+                    "type": "string",
+                    "description": "The system instructions that the assistant uses."
+                },
+                "model": {
+                    "type": "string",
+                    "description": "The model that the assistant uses."
+                },
+                "tools": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "The type of tool."
+                            }
+                        }
+                    },
+                    "description": "A list of tools enabled on the assistant."
+                },
+                "fileIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of file IDs attached to this assistant."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the assistant."
                 }
             },
             "required": [
-                "bucket",
-                "websiteUrl"
+                "id",
+                "createdAt",
+                "object",
+                "name",
+                "model"
             ]
         }
     },
     "language": {
         "csharp": {
             "packageReferences": {
-                "Pulumi": "3.*",
-                "Pulumi.Aws": "5.*"
+                "Pulumi": "3.*"
             },
             "respectSchemaVersion": true
         },
         "go": {
             "generateResourceContainerTypes": true,
-            "importBasePath": "github.com/pulumi/pulumi-xyz/sdk/go/xyz",
+            "importBasePath": "github.com/pulumi/pulumi-openai/sdk/go/openai",
             "respectSchemaVersion": true
         },
         "nodejs": {
             "dependencies": {
-                "@pulumi/aws": "^5.0.0"
+                "openai": "^4.0.0"
             },
             "devDependencies": {
                 "typescript": "^4.6.3"
@@ -53,7 +163,7 @@
         "python": {
             "requires": {
                 "pulumi": ">=3.0.0,<4.0.0",
-                "pulumi-aws": ">=5.0.0,<6.0.0"
+                "openai": ">=1.0.0,<2.0.0"
             },
             "respectSchemaVersion": true
         }

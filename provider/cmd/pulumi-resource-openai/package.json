@@ -1,0 +1,15 @@
+{
+  "name": "@pulumi/openai",
+  "version": "0.0.1",
+  "dependencies": {
+    "@pulumi/pulumi": "^3.0.0",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^4.6.3",
+    "pkg": "^5.8.1"
+  },
+  "bin": "bin/index.js",
+  "license": "Apache-2.0"
+}
