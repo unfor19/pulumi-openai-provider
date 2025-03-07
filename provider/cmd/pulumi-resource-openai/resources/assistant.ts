@@ -2,9 +2,11 @@ import * as provider from "@pulumi/pulumi/provider";
 import OpenAI from "openai";
 import { type AssistantCreateParams, type AssistantUpdateParams } from "openai/resources/beta/assistants";
 import { OpenAIResource } from "./base";
+import { debugLog } from "../utils";
 
 export class AssistantResource implements OpenAIResource {
     async create(client: OpenAI, inputs: any): Promise<provider.CreateResult> {
+        debugLog("ASSISTANT", "Creating assistant with inputs:", inputs);
         const createParams: AssistantCreateParams = {
             name: inputs.name,
             instructions: inputs.instructions,
@@ -22,6 +24,7 @@ export class AssistantResource implements OpenAIResource {
         };
 
         const assistant = await client.beta.assistants.create(createParams);
+        debugLog("ASSISTANT", "Created assistant:", assistant.id);
         
         return {
             id: assistant.id,
@@ -30,6 +33,7 @@ export class AssistantResource implements OpenAIResource {
     }
 
     async read(client: OpenAI, id: string): Promise<provider.ReadResult> {
+        debugLog("ASSISTANT", "Reading assistant:", id);
         const assistant = await client.beta.assistants.retrieve(id);
         return {
             id: assistant.id,
@@ -38,6 +42,10 @@ export class AssistantResource implements OpenAIResource {
     }
 
     async update(client: OpenAI, id: string, olds: any, news: any): Promise<provider.UpdateResult> {
+        debugLog("ASSISTANT", "Updating assistant:", id);
+        debugLog("ASSISTANT", "Old values:", olds);
+        debugLog("ASSISTANT", "New values:", news);
+        
         const updateParams: AssistantUpdateParams = {
             name: news.name,
             instructions: news.instructions,
@@ -61,6 +69,7 @@ export class AssistantResource implements OpenAIResource {
     }
 
     async delete(client: OpenAI, id: string): Promise<void> {
+        debugLog("ASSISTANT", "Deleting assistant:", id);
         await client.beta.assistants.del(id);
     }
 
@@ -68,29 +77,28 @@ export class AssistantResource implements OpenAIResource {
         const changes: string[] = [];
         
         // Debug logging
-        console.log("DIFF DEBUG - Comparing old and new states:");
-        console.log("DIFF DEBUG - Old state:", JSON.stringify(olds, null, 2));
-        console.log("DIFF DEBUG - New state:", JSON.stringify(news, null, 2));
+        debugLog("DIFF", "Comparing old and new states:");
+        debugLog("DIFF", "Old state:", JSON.stringify(olds, null, 2));
+        debugLog("DIFF", "New state:", JSON.stringify(news, null, 2));
         
         // Helper function for deep equality comparison
         const isEqual = (a: any, b: any, propName: string): boolean => {
             // Debug logging
-            console.log(`DIFF DEBUG - Comparing ${propName}:`, 
-                        `Old: ${JSON.stringify(a)}, New: ${JSON.stringify(b)}`);
+            debugLog("DIFF", `Comparing ${propName}: Old: ${JSON.stringify(a)}, New: ${JSON.stringify(b)}`);
             
             // If both are null or undefined, they're equal
             if (a == null && b == null) return true;
             
             // If only one is null/undefined, they're not equal
             if (a == null || b == null) {
-                console.log(`DIFF DEBUG - ${propName} - One value is null/undefined`);
+                debugLog("DIFF", `${propName} - One value is null/undefined`);
                 return false;
             }
             
             // For arrays, compare length and each element
             if (Array.isArray(a) && Array.isArray(b)) {
                 if (a.length !== b.length) {
-                    console.log(`DIFF DEBUG - ${propName} - Array lengths differ: ${a.length} vs ${b.length}`);
+                    debugLog("DIFF", `${propName} - Array lengths differ: ${a.length} vs ${b.length}`);
                     return false;
                 }
                 
@@ -100,7 +108,7 @@ export class AssistantResource implements OpenAIResource {
                     const sortedB = [...b].sort();
                     const result = JSON.stringify(sortedA) === JSON.stringify(sortedB);
                     if (!result) {
-                        console.log(`DIFF DEBUG - ${propName} - Simple arrays differ after sorting`);
+                        debugLog("DIFF", `${propName} - Simple arrays differ after sorting`);
                     }
                     return result;
                 }
@@ -114,7 +122,7 @@ export class AssistantResource implements OpenAIResource {
                     );
                     
                     if (!matchingBObj) {
-                        console.log(`DIFF DEBUG - ${propName} - No matching object found for index ${i}`);
+                        debugLog("DIFF", `${propName} - No matching object found for index ${i}`);
                         return false;
                     }
                 }
@@ -128,9 +136,9 @@ export class AssistantResource implements OpenAIResource {
                 
                 // If they have different number of keys, they're not equal
                 if (keysA.length !== keysB.length) {
-                    console.log(`DIFF DEBUG - ${propName} - Object key counts differ: ${keysA.length} vs ${keysB.length}`);
-                    console.log(`DIFF DEBUG - ${propName} - Keys A: ${keysA.join(', ')}`);
-                    console.log(`DIFF DEBUG - ${propName} - Keys B: ${keysB.join(', ')}`);
+                    debugLog("DIFF", `${propName} - Object key counts differ: ${keysA.length} vs ${keysB.length}`);
+                    debugLog("DIFF", `${propName} - Keys A: ${keysA.join(', ')}`);
+                    debugLog("DIFF", `${propName} - Keys B: ${keysB.join(', ')}`);
                     return false;
                 }
                 
@@ -138,13 +146,13 @@ export class AssistantResource implements OpenAIResource {
                 const result = keysA.every(key => {
                     const keyExists = keysB.includes(key);
                     if (!keyExists) {
-                        console.log(`DIFF DEBUG - ${propName} - Key '${key}' missing in new object`);
+                        debugLog("DIFF", `${propName} - Key '${key}' missing in new object`);
                         return false;
                     }
                     
                     const valuesEqual = isEqual(a[key], b[key], `${propName}.${key}`);
                     if (!valuesEqual) {
-                        console.log(`DIFF DEBUG - ${propName} - Values differ for key '${key}'`);
+                        debugLog("DIFF", `${propName} - Values differ for key '${key}'`);
                     }
                     return valuesEqual;
                 });
@@ -155,7 +163,7 @@ export class AssistantResource implements OpenAIResource {
             // For primitive values, use strict equality
             const result = a === b;
             if (!result) {
-                console.log(`DIFF DEBUG - ${propName} - Primitive values differ: '${a}' vs '${b}'`);
+                debugLog("DIFF", `${propName} - Primitive values differ: '${a}' vs '${b}'`);
             }
             return result;
         };
@@ -171,7 +179,7 @@ export class AssistantResource implements OpenAIResource {
         if (!isEqual(olds.topP, news.topP, "topP")) changes.push("topP");
         if (!isEqual(olds.responseFormat, news.responseFormat, "responseFormat")) changes.push("responseFormat");
         
-        console.log("DIFF DEBUG - Changes detected:", changes);
+        debugLog("DIFF", "Changes detected:", changes);
         
         return {
             changes: changes.length > 0,
