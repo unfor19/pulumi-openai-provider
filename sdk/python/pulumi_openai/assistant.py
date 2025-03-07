@@ -24,7 +24,10 @@ class AssistantArgs:
                  file_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  instructions: Optional[pulumi.Input[str]] = None,
                  metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
-                 tools: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]] = None):
+                 response_format: Optional[pulumi.Input[str]] = None,
+                 temperature: Optional[pulumi.Input[float]] = None,
+                 tools: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]] = None,
+                 top_p: Optional[pulumi.Input[float]] = None):
         """
         The set of arguments for constructing a Assistant resource.
         :param pulumi.Input[str] model: The model that the assistant will use (e.g., gpt-4, gpt-3.5-turbo).
@@ -32,7 +35,10 @@ class AssistantArgs:
         :param pulumi.Input[Sequence[pulumi.Input[str]]] file_ids: A list of file IDs attached to this assistant.
         :param pulumi.Input[str] instructions: The system instructions that the assistant uses.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the assistant.
+        :param pulumi.Input[str] response_format: The format of the response. Can be 'auto' or 'json_object'.
+        :param pulumi.Input[float] temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
         :param pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]] tools: A list of tools enabled on the assistant.
+        :param pulumi.Input[float] top_p: An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
         """
         pulumi.set(__self__, "model", model)
         pulumi.set(__self__, "name", name)
@@ -42,8 +48,14 @@ class AssistantArgs:
             pulumi.set(__self__, "instructions", instructions)
         if metadata is not None:
             pulumi.set(__self__, "metadata", metadata)
+        if response_format is not None:
+            pulumi.set(__self__, "response_format", response_format)
+        if temperature is not None:
+            pulumi.set(__self__, "temperature", temperature)
         if tools is not None:
             pulumi.set(__self__, "tools", tools)
+        if top_p is not None:
+            pulumi.set(__self__, "top_p", top_p)
 
     @property
     @pulumi.getter
@@ -106,6 +118,30 @@ class AssistantArgs:
         pulumi.set(self, "metadata", value)
 
     @property
+    @pulumi.getter(name="responseFormat")
+    def response_format(self) -> Optional[pulumi.Input[str]]:
+        """
+        The format of the response. Can be 'auto' or 'json_object'.
+        """
+        return pulumi.get(self, "response_format")
+
+    @response_format.setter
+    def response_format(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "response_format", value)
+
+    @property
+    @pulumi.getter
+    def temperature(self) -> Optional[pulumi.Input[float]]:
+        """
+        What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        """
+        return pulumi.get(self, "temperature")
+
+    @temperature.setter
+    def temperature(self, value: Optional[pulumi.Input[float]]):
+        pulumi.set(self, "temperature", value)
+
+    @property
     @pulumi.getter
     def tools(self) -> Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]]:
         """
@@ -116,6 +152,18 @@ class AssistantArgs:
     @tools.setter
     def tools(self, value: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]]):
         pulumi.set(self, "tools", value)
+
+    @property
+    @pulumi.getter(name="topP")
+    def top_p(self) -> Optional[pulumi.Input[float]]:
+        """
+        An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+        """
+        return pulumi.get(self, "top_p")
+
+    @top_p.setter
+    def top_p(self, value: Optional[pulumi.Input[float]]):
+        pulumi.set(self, "top_p", value)
 
 
 class Assistant(pulumi.CustomResource):
@@ -128,7 +176,10 @@ class Assistant(pulumi.CustomResource):
                  metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  model: Optional[pulumi.Input[str]] = None,
                  name: Optional[pulumi.Input[str]] = None,
+                 response_format: Optional[pulumi.Input[str]] = None,
+                 temperature: Optional[pulumi.Input[float]] = None,
                  tools: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]] = None,
+                 top_p: Optional[pulumi.Input[float]] = None,
                  __props__=None):
         """
         Create a Assistant resource with the given unique name, props, and options.
@@ -139,7 +190,10 @@ class Assistant(pulumi.CustomResource):
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the assistant.
         :param pulumi.Input[str] model: The model that the assistant will use (e.g., gpt-4, gpt-3.5-turbo).
         :param pulumi.Input[str] name: The name of the assistant.
+        :param pulumi.Input[str] response_format: The format of the response. Can be 'auto' or 'json_object'.
+        :param pulumi.Input[float] temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
         :param pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]] tools: A list of tools enabled on the assistant.
+        :param pulumi.Input[float] top_p: An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
         """
         ...
     @overload
@@ -169,7 +223,10 @@ class Assistant(pulumi.CustomResource):
                  metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  model: Optional[pulumi.Input[str]] = None,
                  name: Optional[pulumi.Input[str]] = None,
+                 response_format: Optional[pulumi.Input[str]] = None,
+                 temperature: Optional[pulumi.Input[float]] = None,
                  tools: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]] = None,
+                 top_p: Optional[pulumi.Input[float]] = None,
                  __props__=None):
         opts = pulumi.ResourceOptions.merge(_utilities.get_resource_opts_defaults(), opts)
         if not isinstance(opts, pulumi.ResourceOptions):
@@ -188,7 +245,10 @@ class Assistant(pulumi.CustomResource):
             if name is None and not opts.urn:
                 raise TypeError("Missing required property 'name'")
             __props__.__dict__["name"] = name
+            __props__.__dict__["response_format"] = response_format
+            __props__.__dict__["temperature"] = temperature
             __props__.__dict__["tools"] = tools
+            __props__.__dict__["top_p"] = top_p
             __props__.__dict__["created_at"] = None
             __props__.__dict__["id"] = None
             __props__.__dict__["object"] = None
@@ -222,7 +282,10 @@ class Assistant(pulumi.CustomResource):
         __props__.__dict__["model"] = None
         __props__.__dict__["name"] = None
         __props__.__dict__["object"] = None
+        __props__.__dict__["response_format"] = None
+        __props__.__dict__["temperature"] = None
         __props__.__dict__["tools"] = None
+        __props__.__dict__["top_p"] = None
         return Assistant(resource_name, opts=opts, __props__=__props__)
 
     @property
@@ -290,10 +353,34 @@ class Assistant(pulumi.CustomResource):
         return pulumi.get(self, "object")
 
     @property
+    @pulumi.getter(name="responseFormat")
+    def response_format(self) -> pulumi.Output[Optional[str]]:
+        """
+        The format of the response. Can be 'auto' or 'json_object'.
+        """
+        return pulumi.get(self, "response_format")
+
+    @property
+    @pulumi.getter
+    def temperature(self) -> pulumi.Output[Optional[float]]:
+        """
+        What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        """
+        return pulumi.get(self, "temperature")
+
+    @property
     @pulumi.getter
     def tools(self) -> pulumi.Output[Optional[Sequence[Mapping[str, str]]]]:
         """
         A list of tools enabled on the assistant.
         """
         return pulumi.get(self, "tools")
+
+    @property
+    @pulumi.getter(name="topP")
+    def top_p(self) -> pulumi.Output[Optional[float]]:
+        """
+        An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+        """
+        return pulumi.get(self, "top_p")
 

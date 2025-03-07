@@ -61,10 +61,28 @@ namespace Pulumi.Openai
         public Output<string> Object { get; private set; } = null!;
 
         /// <summary>
+        /// The format of the response. Can be 'auto' or 'json_object'.
+        /// </summary>
+        [Output("responseFormat")]
+        public Output<string?> ResponseFormat { get; private set; } = null!;
+
+        /// <summary>
+        /// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        /// </summary>
+        [Output("temperature")]
+        public Output<double?> Temperature { get; private set; } = null!;
+
+        /// <summary>
         /// A list of tools enabled on the assistant.
         /// </summary>
         [Output("tools")]
         public Output<ImmutableArray<ImmutableDictionary<string, string>>> Tools { get; private set; } = null!;
+
+        /// <summary>
+        /// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+        /// </summary>
+        [Output("topP")]
+        public Output<double?> TopP { get; private set; } = null!;
 
 
         /// <summary>
@@ -153,6 +171,18 @@ namespace Pulumi.Openai
         [Input("name", required: true)]
         public Input<string> Name { get; set; } = null!;
 
+        /// <summary>
+        /// The format of the response. Can be 'auto' or 'json_object'.
+        /// </summary>
+        [Input("responseFormat")]
+        public Input<string>? ResponseFormat { get; set; }
+
+        /// <summary>
+        /// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        /// </summary>
+        [Input("temperature")]
+        public Input<double>? Temperature { get; set; }
+
         [Input("tools")]
         private InputList<ImmutableDictionary<string, string>>? _tools;
 
@@ -164,6 +194,12 @@ namespace Pulumi.Openai
             get => _tools ?? (_tools = new InputList<ImmutableDictionary<string, string>>());
             set => _tools = value;
         }
+
+        /// <summary>
+        /// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+        /// </summary>
+        [Input("topP")]
+        public Input<double>? TopP { get; set; }
 
         public AssistantArgs()
         {

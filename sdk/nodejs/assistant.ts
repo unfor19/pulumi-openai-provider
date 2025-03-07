@@ -64,9 +64,21 @@ export class Assistant extends pulumi.CustomResource {
      */
     public /*out*/ readonly object!: pulumi.Output<string>;
     /**
+     * The format of the response. Can be 'auto' or 'json_object'.
+     */
+    public readonly responseFormat!: pulumi.Output<string | undefined>;
+    /**
+     * What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+     */
+    public readonly temperature!: pulumi.Output<number | undefined>;
+    /**
      * A list of tools enabled on the assistant.
      */
     public readonly tools!: pulumi.Output<{[key: string]: string}[] | undefined>;
+    /**
+     * An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+     */
+    public readonly topP!: pulumi.Output<number | undefined>;
 
     /**
      * Create a Assistant resource with the given unique name, arguments, and options.
@@ -90,7 +102,10 @@ export class Assistant extends pulumi.CustomResource {
             resourceInputs["metadata"] = args ? args.metadata : undefined;
             resourceInputs["model"] = args ? args.model : undefined;
             resourceInputs["name"] = args ? args.name : undefined;
+            resourceInputs["responseFormat"] = args ? args.responseFormat : undefined;
+            resourceInputs["temperature"] = args ? args.temperature : undefined;
             resourceInputs["tools"] = args ? args.tools : undefined;
+            resourceInputs["topP"] = args ? args.topP : undefined;
             resourceInputs["createdAt"] = undefined /*out*/;
             resourceInputs["id"] = undefined /*out*/;
             resourceInputs["object"] = undefined /*out*/;
@@ -103,7 +118,10 @@ export class Assistant extends pulumi.CustomResource {
             resourceInputs["model"] = undefined /*out*/;
             resourceInputs["name"] = undefined /*out*/;
             resourceInputs["object"] = undefined /*out*/;
+            resourceInputs["responseFormat"] = undefined /*out*/;
+            resourceInputs["temperature"] = undefined /*out*/;
             resourceInputs["tools"] = undefined /*out*/;
+            resourceInputs["topP"] = undefined /*out*/;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
         super(Assistant.__pulumiType, name, resourceInputs, opts);
@@ -135,7 +153,19 @@ export interface AssistantArgs {
      */
     name: pulumi.Input<string>;
     /**
+     * The format of the response. Can be 'auto' or 'json_object'.
+     */
+    responseFormat?: pulumi.Input<string>;
+    /**
+     * What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+     */
+    temperature?: pulumi.Input<number>;
+    /**
      * A list of tools enabled on the assistant.
      */
     tools?: pulumi.Input<pulumi.Input<{[key: string]: pulumi.Input<string>}>[]>;
+    /**
+     * An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+     */
+    topP?: pulumi.Input<number>;
 }

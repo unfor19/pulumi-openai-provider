@@ -67,34 +67,111 @@ export class AssistantResource implements OpenAIResource {
     diff(olds: any, news: any): provider.DiffResult {
         const changes: string[] = [];
         
+        // Debug logging
+        console.log("DIFF DEBUG - Comparing old and new states:");
+        console.log("DIFF DEBUG - Old state:", JSON.stringify(olds, null, 2));
+        console.log("DIFF DEBUG - New state:", JSON.stringify(news, null, 2));
+        
+        // Helper function for deep equality comparison
+        const isEqual = (a: any, b: any, propName: string): boolean => {
+            // Debug logging
+            console.log(`DIFF DEBUG - Comparing ${propName}:`, 
+                        `Old: ${JSON.stringify(a)}, New: ${JSON.stringify(b)}`);
+            
+            // If both are null or undefined, they're equal
+            if (a == null && b == null) return true;
+            
+            // If only one is null/undefined, they're not equal
+            if (a == null || b == null) {
+                console.log(`DIFF DEBUG - ${propName} - One value is null/undefined`);
+                return false;
+            }
+            
+            // For arrays, compare length and each element
+            if (Array.isArray(a) && Array.isArray(b)) {
+                if (a.length !== b.length) {
+                    console.log(`DIFF DEBUG - ${propName} - Array lengths differ: ${a.length} vs ${b.length}`);
+                    return false;
+                }
+                
+                // For simple arrays (like fileIds), sort and compare
+                if (a.length > 0 && typeof a[0] !== 'object') {
+                    const sortedA = [...a].sort();
+                    const sortedB = [...b].sort();
+                    const result = JSON.stringify(sortedA) === JSON.stringify(sortedB);
+                    if (!result) {
+                        console.log(`DIFF DEBUG - ${propName} - Simple arrays differ after sorting`);
+                    }
+                    return result;
+                }
+                
+                // For arrays of objects (like tools), compare each object
+                for (let i = 0; i < a.length; i++) {
+                    // Find matching object in b
+                    const aObj = a[i];
+                    const matchingBObj = b.find((bObj: any) => 
+                        Object.keys(aObj).every(key => isEqual(aObj[key], bObj[key], `${propName}[${i}].${key}`))
+                    );
+                    
+                    if (!matchingBObj) {
+                        console.log(`DIFF DEBUG - ${propName} - No matching object found for index ${i}`);
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            // For objects, compare keys and values
+            if (typeof a === 'object' && typeof b === 'object') {
+                const keysA = Object.keys(a);
+                const keysB = Object.keys(b);
+                
+                // If they have different number of keys, they're not equal
+                if (keysA.length !== keysB.length) {
+                    console.log(`DIFF DEBUG - ${propName} - Object key counts differ: ${keysA.length} vs ${keysB.length}`);
+                    console.log(`DIFF DEBUG - ${propName} - Keys A: ${keysA.join(', ')}`);
+                    console.log(`DIFF DEBUG - ${propName} - Keys B: ${keysB.join(', ')}`);
+                    return false;
+                }
+                
+                // Check if all keys in a exist in b with the same values
+                const result = keysA.every(key => {
+                    const keyExists = keysB.includes(key);
+                    if (!keyExists) {
+                        console.log(`DIFF DEBUG - ${propName} - Key '${key}' missing in new object`);
+                        return false;
+                    }
+                    
+                    const valuesEqual = isEqual(a[key], b[key], `${propName}.${key}`);
+                    if (!valuesEqual) {
+                        console.log(`DIFF DEBUG - ${propName} - Values differ for key '${key}'`);
+                    }
+                    return valuesEqual;
+                });
+                
+                return result;
+            }
+            
+            // For primitive values, use strict equality
+            const result = a === b;
+            if (!result) {
+                console.log(`DIFF DEBUG - ${propName} - Primitive values differ: '${a}' vs '${b}'`);
+            }
+            return result;
+        };
+        
         // Check for changes in properties
-        if (olds.name !== news.name) changes.push("name");
-        if (olds.instructions !== news.instructions) changes.push("instructions");
-        if (olds.model !== news.model) changes.push("model");
+        if (!isEqual(olds.name, news.name, "name")) changes.push("name");
+        if (!isEqual(olds.instructions, news.instructions, "instructions")) changes.push("instructions");
+        if (!isEqual(olds.model, news.model, "model")) changes.push("model");
+        if (!isEqual(olds.tools || [], news.tools || [], "tools")) changes.push("tools");
+        if (!isEqual(olds.fileIds || [], news.fileIds || [], "fileIds")) changes.push("fileIds");
+        if (!isEqual(olds.metadata || {}, news.metadata || {}, "metadata")) changes.push("metadata");
+        if (!isEqual(olds.temperature, news.temperature, "temperature")) changes.push("temperature");
+        if (!isEqual(olds.topP, news.topP, "topP")) changes.push("topP");
+        if (!isEqual(olds.responseFormat, news.responseFormat, "responseFormat")) changes.push("responseFormat");
         
-        // Compare tools arrays
-        const oldTools = JSON.stringify(olds.tools || []);
-        const newTools = JSON.stringify(news.tools || []);
-        if (oldTools !== newTools) changes.push("tools");
-        
-        // Compare fileIds arrays
-        const oldFileIds = JSON.stringify(olds.fileIds || []);
-        const newFileIds = JSON.stringify(news.fileIds || []);
-        if (oldFileIds !== newFileIds) changes.push("fileIds");
-        
-        // Compare metadata objects
-        const oldMetadata = JSON.stringify(olds.metadata || {});
-        const newMetadata = JSON.stringify(news.metadata || {});
-        if (oldMetadata !== newMetadata) changes.push("metadata");
-        
-        // Check scalar properties
-        if (olds.temperature !== news.temperature) changes.push("temperature");
-        if (olds.topP !== news.topP) changes.push("topP");
-        
-        // Compare responseFormat objects
-        const oldResponseFormat = JSON.stringify(olds.responseFormat || null);
-        const newResponseFormat = JSON.stringify(news.responseFormat || null);
-        if (oldResponseFormat !== newResponseFormat) changes.push("responseFormat");
+        console.log("DIFF DEBUG - Changes detected:", changes);
         
         return {
             changes: changes.length > 0,

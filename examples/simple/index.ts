@@ -1,12 +1,13 @@
-import * as pulumi from "@pulumi/pulumi";
 import { Assistant } from "@pulumi/openai";
-
 // Create an OpenAI Assistant
 const assistant = new Assistant("test-assistant", {
     name: "Test Assistant",
     model: "gpt-4-turbo-preview",
     instructions: "You are a helpful assistant that specializes in testing Pulumi providers.",
     tools: [{ type: "code_interpreter" }],
+    temperature: 1,
+    topP: 1,
+    responseFormat: "auto",
 });
 
 // Export the assistant properties

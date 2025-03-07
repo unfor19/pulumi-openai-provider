@@ -31,8 +31,14 @@ type Assistant struct {
 	Name pulumi.StringOutput `pulumi:"name"`
 	// The object type, which is always 'assistant'.
 	Object pulumi.StringOutput `pulumi:"object"`
+	// The format of the response. Can be 'auto' or 'json_object'.
+	ResponseFormat pulumi.StringPtrOutput `pulumi:"responseFormat"`
+	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+	Temperature pulumi.Float64PtrOutput `pulumi:"temperature"`
 	// A list of tools enabled on the assistant.
 	Tools pulumi.StringMapArrayOutput `pulumi:"tools"`
+	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+	TopP pulumi.Float64PtrOutput `pulumi:"topP"`
 }
 
 // NewAssistant registers a new resource with the given unique name, arguments, and options.
@@ -91,8 +97,14 @@ type assistantArgs struct {
 	Model string `pulumi:"model"`
 	// The name of the assistant.
 	Name string `pulumi:"name"`
+	// The format of the response. Can be 'auto' or 'json_object'.
+	ResponseFormat *string `pulumi:"responseFormat"`
+	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+	Temperature *float64 `pulumi:"temperature"`
 	// A list of tools enabled on the assistant.
 	Tools []map[string]string `pulumi:"tools"`
+	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+	TopP *float64 `pulumi:"topP"`
 }
 
 // The set of arguments for constructing a Assistant resource.
@@ -107,8 +119,14 @@ type AssistantArgs struct {
 	Model pulumi.StringInput
 	// The name of the assistant.
 	Name pulumi.StringInput
+	// The format of the response. Can be 'auto' or 'json_object'.
+	ResponseFormat pulumi.StringPtrInput
+	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+	Temperature pulumi.Float64PtrInput
 	// A list of tools enabled on the assistant.
 	Tools pulumi.StringMapArrayInput
+	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+	TopP pulumi.Float64PtrInput
 }
 
 func (AssistantArgs) ElementType() reflect.Type {
@@ -238,9 +256,24 @@ func (o AssistantOutput) Object() pulumi.StringOutput {
 	return o.ApplyT(func(v *Assistant) pulumi.StringOutput { return v.Object }).(pulumi.StringOutput)
 }
 
+// The format of the response. Can be 'auto' or 'json_object'.
+func (o AssistantOutput) ResponseFormat() pulumi.StringPtrOutput {
+	return o.ApplyT(func(v *Assistant) pulumi.StringPtrOutput { return v.ResponseFormat }).(pulumi.StringPtrOutput)
+}
+
+// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+func (o AssistantOutput) Temperature() pulumi.Float64PtrOutput {
+	return o.ApplyT(func(v *Assistant) pulumi.Float64PtrOutput { return v.Temperature }).(pulumi.Float64PtrOutput)
+}
+
 // A list of tools enabled on the assistant.
 func (o AssistantOutput) Tools() pulumi.StringMapArrayOutput {
 	return o.ApplyT(func(v *Assistant) pulumi.StringMapArrayOutput { return v.Tools }).(pulumi.StringMapArrayOutput)
+}
+
+// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+func (o AssistantOutput) TopP() pulumi.Float64PtrOutput {
+	return o.ApplyT(func(v *Assistant) pulumi.Float64PtrOutput { return v.TopP }).(pulumi.Float64PtrOutput)
 }
 
 type AssistantArrayOutput struct{ *pulumi.OutputState }
