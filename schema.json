@@ -1,49 +1,176 @@
 {
-    "name": "xyz",
+    "name": "openai",
+    "displayName": "OpenAI",
+    "description": "A Pulumi provider for managing OpenAI resources.",
+    "publisher": "Pulumi",
+    "keywords": [
+        "pulumi",
+        "openai",
+        "ai",
+        "assistant",
+        "category/ai"
+    ],
+    "config": {
+        "variables": {
+            "apiKey": {
+                "type": "string",
+                "description": "The OpenAI API key.",
+                "secret": true
+            }
+        },
+        "required": [
+            "apiKey"
+        ]
+    },
     "resources": {
-        "xyz:index:StaticPage": {
-            "isComponent": true,
+        "openai:index:Assistant": {
+            "isComponent": false,
             "inputProperties": {
-                "indexContent": {
+                "name": {
                     "type": "string",
-                    "description": "The HTML content for index.html."
+                    "description": "The name of the assistant."
+                },
+                "instructions": {
+                    "type": "string",
+                    "description": "The system instructions that the assistant uses."
+                },
+                "model": {
+                    "type": "string",
+                    "description": "The model that the assistant will use (e.g., gpt-4, gpt-3.5-turbo)."
+                },
+                "tools": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "The type of tool (e.g., code_interpreter, retrieval, function)."
+                            }
+                        }
+                    },
+                    "description": "A list of tools enabled on the assistant."
+                },
+                "fileIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of file IDs attached to this assistant."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the assistant."
+                },
+                "temperature": {
+                    "type": "number",
+                    "description": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic."
+                },
+                "topP": {
+                    "type": "number",
+                    "description": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered."
+                },
+                "responseFormat": {
+                    "type": "string",
+                    "description": "The format of the response. Can be 'auto' or 'json_object'."
                 }
             },
             "requiredInputs": [
-                "indexContent"
+                "name",
+                "model"
             ],
             "properties": {
-                "bucket": {
-                    "$ref": "/aws/v4.0.0/schema.json#/resources/aws:s3%2Fbucket:Bucket",
-                    "description": "The bucket resource."
-                },
-                "websiteUrl": {
+                "id": {
                     "type": "string",
-                    "description": "The website URL."
+                    "description": "The unique identifier for the assistant."
+                },
+                "createdAt": {
+                    "type": "number",
+                    "description": "The Unix timestamp (in seconds) for when the assistant was created."
+                },
+                "object": {
+                    "type": "string",
+                    "description": "The object type, which is always 'assistant'."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the assistant."
+                },
+                "instructions": {
+                    "type": "string",
+                    "description": "The system instructions that the assistant uses."
+                },
+                "model": {
+                    "type": "string",
+                    "description": "The model that the assistant uses."
+                },
+                "tools": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "The type of tool."
+                            }
+                        }
+                    },
+                    "description": "A list of tools enabled on the assistant."
+                },
+                "fileIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of file IDs attached to this assistant."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the assistant."
+                },
+                "temperature": {
+                    "type": "number",
+                    "description": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic."
+                },
+                "topP": {
+                    "type": "number",
+                    "description": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered."
+                },
+                "responseFormat": {
+                    "type": "string",
+                    "description": "The format of the response. Can be 'auto' or 'json_object'."
                 }
             },
             "required": [
-                "bucket",
-                "websiteUrl"
+                "id",
+                "createdAt",
+                "object",
+                "name",
+                "model"
             ]
         }
     },
     "language": {
         "csharp": {
             "packageReferences": {
-                "Pulumi": "3.*",
-                "Pulumi.Aws": "5.*"
+                "Pulumi": "3.*"
             },
             "respectSchemaVersion": true
         },
         "go": {
             "generateResourceContainerTypes": true,
-            "importBasePath": "github.com/pulumi/pulumi-xyz/sdk/go/xyz",
+            "importBasePath": "github.com/pulumi/pulumi-openai/sdk/go/openai",
             "respectSchemaVersion": true
         },
         "nodejs": {
             "dependencies": {
-                "@pulumi/aws": "^5.0.0"
+                "openai": "^4.0.0"
             },
             "devDependencies": {
                 "typescript": "^4.6.3"
@@ -53,7 +180,7 @@
         "python": {
             "requires": {
                 "pulumi": ">=3.0.0,<4.0.0",
-                "pulumi-aws": ">=5.0.0,<6.0.0"
+                "openai": ">=1.0.0,<2.0.0"
             },
             "respectSchemaVersion": true
         }

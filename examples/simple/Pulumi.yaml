@@ -1,3 +1,7 @@
 name: simple
 runtime: nodejs
-description: A simple xyz example
+description: A simple example of using the OpenAI provider
+plugins:
+  providers:
+    - name: openai
+      path: ../../bin

@@ -1,0 +1,4 @@
+PROJECT_NAME=pulumi-openai-provider
+
+OPENAI_API_KEY=sk-svcacct-...
+PULUMI_OPENAI_PROVIDER_DEBUG=

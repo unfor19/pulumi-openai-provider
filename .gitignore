@@ -1,4 +1,5 @@
-.pulumi
+.*
+!.*ignore*
 **/bin/
 **/obj/
 **/node_modules/
@@ -7,16 +8,18 @@ vendor/
 **/yarn-error.log
 yarn.lock
 package-lock.json
-.idea/
+ai/
 **/version.txt
 **/dist
 nuget/
 **/build
 dist/
-.DS_Store
 
 ci-scripts/
 *.tar.gz
+
+.DS_Store
+.pulumi
 
 # This is an artifact only so that we can pass the
 # schema for the provider GetSchema gRPC request
