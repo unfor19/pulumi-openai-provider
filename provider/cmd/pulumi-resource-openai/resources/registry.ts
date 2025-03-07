@@ -1,5 +1,6 @@
 import { OpenAIResource } from "./base";
 import { AssistantResource } from "./assistant";
+import { VectorStoreResource } from "./vectorstore";
 
 /**
  * Registry of all OpenAI resources
@@ -7,6 +8,7 @@ import { AssistantResource } from "./assistant";
 export class ResourceRegistry {
     private static readonly resources: { [key: string]: OpenAIResource } = {
         "openai:index:Assistant": new AssistantResource(),
+        "openai:index:VectorStore": new VectorStoreResource(),
         // Add more resources here as they are implemented
     };
 

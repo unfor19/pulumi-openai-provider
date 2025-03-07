@@ -15,6 +15,11 @@ export type Provider = import("./provider").Provider;
 export const Provider: typeof import("./provider").Provider = null as any;
 utilities.lazyLoad(exports, ["Provider"], () => require("./provider"));
 
+export { VectorStoreArgs } from "./vectorStore";
+export type VectorStore = import("./vectorStore").VectorStore;
+export const VectorStore: typeof import("./vectorStore").VectorStore = null as any;
+utilities.lazyLoad(exports, ["VectorStore"], () => require("./vectorStore"));
+
 
 // Export sub-modules:
 import * as config from "./config";
@@ -29,6 +34,8 @@ const _module = {
         switch (type) {
             case "openai:index:Assistant":
                 return new Assistant(name, <any>undefined, { urn })
+            case "openai:index:VectorStore":
+                return new VectorStore(name, <any>undefined, { urn })
             default:
                 throw new Error(`unknown resource type ${type}`);
         }

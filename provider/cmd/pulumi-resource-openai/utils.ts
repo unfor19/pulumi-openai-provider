@@ -8,7 +8,7 @@ import * as pulumi from "@pulumi/pulumi";
  * @returns true if debug mode is enabled
  */
 export const isDebugMode = (): boolean => {
-    const debugEnv = process.env.PULUMI_OPENAI_PROVIDER_DEBUG;
+    const debugEnv = process.env.PULUMI_OPENAI_PROVIDER_DEBUG || process.env.PULUMI_OPENAI_DEBUG;
     return debugEnv === "1" || debugEnv === "true";
 };
 
@@ -32,12 +32,19 @@ export const debugLog = (component: string, message: string, ...args: any[]): vo
                     typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
                 );
                 pulumi.log.debug(`${logMessage} ${formattedArgs.join(' ')}`);
+                
+                // Also log to stderr for better visibility
+                console.error(`DEBUG: ${logMessage}`, ...args);
             } else {
                 pulumi.log.debug(logMessage);
+                
+                // Also log to stderr for better visibility
+                console.error(`DEBUG: ${logMessage}`);
             }
         } catch (e) {
             // If pulumi.log.debug fails, we don't want to break the provider
             // This should never happen in normal operation
+            console.error("Failed to log debug message:", e);
         }
     }
 }; 

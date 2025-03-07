@@ -7,6 +7,7 @@ import typing
 # Export this package's modules as members:
 from .assistant import *
 from .provider import *
+from .vector_store import *
 
 # Make subpackages available:
 if typing.TYPE_CHECKING:
@@ -23,7 +24,8 @@ _utilities.register(
   "mod": "index",
   "fqn": "pulumi_openai",
   "classes": {
-   "openai:index:Assistant": "Assistant"
+   "openai:index:Assistant": "Assistant",
+   "openai:index:VectorStore": "VectorStore"
   }
  }
 ]
