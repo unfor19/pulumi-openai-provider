@@ -1,10 +1,19 @@
+import * as pulumi from "@pulumi/pulumi";
 import * as provider from "@pulumi/pulumi/provider";
 import OpenAI from "openai";
-import { debugLog } from "../utils";
-import { OpenAIResource } from "./base";
+import { debugLog } from "../../utils";
+import { OpenAIResource } from "../base";
 
+/**
+ * VectorStoreResource implements the OpenAI Vector Store resource type
+ */
 export class VectorStoreResource implements OpenAIResource {
     async create(client: OpenAI, inputs: any): Promise<provider.CreateResult> {
+        // Check if we're in preview mode
+        if (pulumi.runtime.isDryRun()) {
+            return this.preview(inputs);
+        }
+
         debugLog("VectorStoreResource", "create called with inputs: %o", inputs);
         debugLog("VectorStoreResource", "expiresAfter type: %s, value: %o", 
             typeof inputs.expiresAfter, inputs.expiresAfter);
@@ -86,6 +95,11 @@ export class VectorStoreResource implements OpenAIResource {
     }
 
     async update(client: OpenAI, id: string, olds: any, news: any): Promise<provider.UpdateResult> {
+        // Check if we're in preview mode
+        if (pulumi.runtime.isDryRun()) {
+            return { outs: news };
+        }
+
         debugLog("VectorStoreResource", "update called with id: %s, olds: %o, news: %o", id, olds, news);
         debugLog("VectorStoreResource", "update expiresAfter type: %s, value: %o", 
             typeof news.expiresAfter, news.expiresAfter);
@@ -147,6 +161,11 @@ export class VectorStoreResource implements OpenAIResource {
     }
 
     async delete(client: OpenAI, id: string): Promise<void> {
+        // Check if we're in preview mode
+        if (pulumi.runtime.isDryRun()) {
+            return;
+        }
+
         debugLog("VectorStoreResource", "delete called with id: %s", id);
         await client.beta.vectorStores.del(id);
     }

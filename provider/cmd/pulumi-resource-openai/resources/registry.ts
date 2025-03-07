@@ -1,6 +1,6 @@
 import { OpenAIResource } from "./base";
 import { AssistantResource } from "./assistant/index";
-import { VectorStoreResource } from "./vectorstore";
+import { VectorStoreResource } from "./vectorstore/index";
 
 /**
  * Registry of all OpenAI resources
