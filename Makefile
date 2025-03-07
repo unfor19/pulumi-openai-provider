@@ -235,7 +235,8 @@ pulumi-stack-init: ## Initialize a new Pulumi stack
 	cd examples/simple && pulumi stack init dev
 
 pulumi-preview: ## Preview Pulumi changes
-	cd examples/simple && pulumi preview
+	@echo "Running Pulumi preview..."
+	@cd examples/simple && pulumi preview
 
 pulumi-up: ## Apply Pulumi changes
 	cd examples/simple && pulumi up
@@ -332,3 +333,10 @@ build_python_sdk:: gen_python_sdk ## Build Python SDK
 		rm ./bin/setup.py.bak && \
 		cd ./bin && python3 setup.py build sdist
 # --- Pulumi Provider --- END --------------------------------------------------------------
+
+list-assistants: ## List all OpenAI assistants
+	@echo "Listing OpenAI assistants..."
+	@curl -s   -H "Content-Type: application/json" \
+			  -H "OpenAI-Beta: assistants=v2" \
+			 -H "Authorization: Bearer ${OPENAI_API_KEY}" https://api.openai.com/v1/assistants | \
+		jq -r 'if .data then (.data[] | "ID: \(.id)\tName: \(.name)\tModel: \(.model)") else "No assistants found" end'
