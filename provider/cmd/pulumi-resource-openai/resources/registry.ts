@@ -1,5 +1,5 @@
 import { OpenAIResource } from "./base";
-import { AssistantResource } from "./assistant";
+import { AssistantResource } from "./assistant/index";
 import { VectorStoreResource } from "./vectorstore";
 
 /**

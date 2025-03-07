@@ -240,17 +240,17 @@ pulumi-stack-init: ## Initialize a new Pulumi stack
 
 pulumi-preview: ## Preview Pulumi changes
 	@echo "Running Pulumi preview..."
-	@cd examples/simple && pulumi preview --diff --create
+	@cd ${WORKING_DIR}/examples/simple && pulumi preview --diff
 
 preview: pulumi-preview
 
 pulumi-up: ## Apply Pulumi changes
-	cd examples/simple && pulumi up --diff
+	@cd ${WORKING_DIR}/examples/simple && pulumi up --diff
 
 up: pulumi-up
 
 pulumi-destroy: ## Destroy Pulumi resources
-	cd examples/simple && pulumi destroy
+	@cd ${WORKING_DIR}/examples/simple && pulumi destroy
 
 # Provider
 build_provider:: ensure ## Build the provider

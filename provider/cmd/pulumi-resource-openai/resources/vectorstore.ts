@@ -155,16 +155,38 @@ export class VectorStoreResource implements OpenAIResource {
         debugLog("VectorStoreResource", "diff called with olds: %o, news: %o", olds, news);
 
         const replaces: string[] = [];
-        const stables: string[] = [];
+        const stables: string[] = ["id", "expiresAt", "lastActiveAt", "createdAt"];
         let changes = false;
 
+        // Ignore timestamp fields that change frequently
+        const ignoredFields = ["expiresAt", "lastActiveAt", "createdAt"];
+
         const isEqual = (a: any, b: any, propName: string): boolean => {
+            // Ignore timestamp fields that change frequently
+            if (ignoredFields.includes(propName)) {
+                debugLog("VectorStoreResource", "Ignoring timestamp field: %s", propName);
+                return true;
+            }
+            
             if (a === b) return true;
             
             // Handle undefined/null cases
             if (a === undefined && b === null) return true;
             if (a === null && b === undefined) return true;
-            if (a === undefined || a === null || b === undefined || b === null) return false;
+            if (a === undefined || a === null || b === undefined || b === null) {
+                // Special case for fileIds: empty array is equivalent to undefined/null
+                if (propName === "fileIds") {
+                    const aIsEmpty = Array.isArray(a) && a.length === 0;
+                    const bIsEmpty = Array.isArray(b) && b.length === 0;
+                    
+                    if ((aIsEmpty && (b === undefined || b === null)) || 
+                        (bIsEmpty && (a === undefined || a === null))) {
+                        debugLog("VectorStoreResource", "Empty fileIds array is equivalent to undefined/null");
+                        return true;
+                    }
+                }
+                return false;
+            }
             
             // Handle arrays
             if (Array.isArray(a) && Array.isArray(b)) {
@@ -199,25 +221,50 @@ export class VectorStoreResource implements OpenAIResource {
         };
 
         // Check for differences in properties
-        if (!isEqual(olds.name, news.name, "name")) {
+        let nameEqual = isEqual(olds.name, news.name, "name");
+        if (!nameEqual) {
+            debugLog("VectorStoreResource", "Name changed: %s -> %s", olds.name, news.name);
             changes = true;
         }
 
-        if (!isEqual(olds.metadata, news.metadata, "metadata")) {
+        let metadataEqual = isEqual(olds.metadata, news.metadata, "metadata");
+        if (!metadataEqual) {
+            debugLog("VectorStoreResource", "Metadata changed: %o -> %o", olds.metadata, news.metadata);
             changes = true;
         }
         
-        if (!isEqual(olds.fileIds, news.fileIds, "fileIds")) {
+        let fileIdsEqual = isEqual(olds.fileIds, news.fileIds, "fileIds");
+        if (!fileIdsEqual) {
+            debugLog("VectorStoreResource", "FileIds changed: %o -> %o", olds.fileIds, news.fileIds);
             changes = true;
         }
         
-        if (!isEqual(olds.expiresAfter, news.expiresAfter, "expiresAfter")) {
+        let expiresAfterEqual = isEqual(olds.expiresAfter, news.expiresAfter, "expiresAfter");
+        if (!expiresAfterEqual) {
+            debugLog("VectorStoreResource", "ExpiresAfter changed: %o -> %o", olds.expiresAfter, news.expiresAfter);
             changes = true;
         }
         
-        if (!isEqual(olds.chunkingStrategy, news.chunkingStrategy, "chunkingStrategy")) {
+        let chunkingStrategyEqual = isEqual(olds.chunkingStrategy, news.chunkingStrategy, "chunkingStrategy");
+        if (!chunkingStrategyEqual) {
+            debugLog("VectorStoreResource", "ChunkingStrategy changed: %o -> %o", olds.chunkingStrategy, news.chunkingStrategy);
             changes = true;
         }
+
+        // Force changes to false if only timestamp fields have changed
+        if (changes === false || (
+            nameEqual && 
+            metadataEqual && 
+            fileIdsEqual && 
+            expiresAfterEqual && 
+            chunkingStrategyEqual
+        )) {
+            debugLog("VectorStoreResource", "No meaningful changes detected, forcing changes=false");
+            changes = false;
+        }
+
+        debugLog("VectorStoreResource", "Diff result: changes=%s, replaces=%o, stables=%o", 
+            changes, replaces, stables);
 
         return {
             changes,
