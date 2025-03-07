@@ -7,6 +7,7 @@ vendor/
 **/Pulumi.*.yaml
 **/yarn-error.log
 yarn.lock
+!provider/cmd/pulumi-resource-openai/yarn.lock
 package-lock.json
 ai/
 **/version.txt
@@ -24,3 +25,5 @@ ci-scripts/
 # This is an artifact only so that we can pass the
 # schema for the provider GetSchema gRPC request
 /provider/cmd/pulumi-resource-*/schema.json
+
+!.github

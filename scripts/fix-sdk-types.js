@@ -3,8 +3,19 @@
 const fs = require('fs');
 const path = require('path');
 
-// Path to the vectorStore.ts file
-const vectorStorePath = path.join(process.cwd(), 'sdk', 'nodejs', 'vectorStore.ts');
+// Get the repository root directory
+const repoRoot = process.env.WORKING_DIR || path.resolve(__dirname, '..');
+
+// Path to the vectorStore.ts file using absolute path
+const vectorStorePath = path.join(repoRoot, 'sdk', 'nodejs', 'vectorStore.ts');
+
+console.log(`Looking for vectorStore.ts at: ${vectorStorePath}`);
+
+// Check if the file exists
+if (!fs.existsSync(vectorStorePath)) {
+    console.error(`Error: File not found at ${vectorStorePath}`);
+    process.exit(1);
+}
 
 // Read the file
 let content = fs.readFileSync(vectorStorePath, 'utf8');

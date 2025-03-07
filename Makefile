@@ -206,9 +206,9 @@ docker-run: ## Run the Docker container
 
 dependencies-install: ## Install all provider and SDK dependencies
 	@echo "Installing provider dependencies..."
-	cd provider/cmd/${PROVIDER} && yarn install
+	cd ${WORKING_DIR}/provider/cmd/${PROVIDER} && yarn install $${CI:+--frozen-lockfile}
 	@echo "Installing code generator dependencies..."
-	cd provider/cmd/pulumi-gen-openai && go mod tidy
+	cd ${WORKING_DIR}/provider/cmd/pulumi-gen-openai && go mod tidy
 	@echo "Dependencies installed successfully."
 
 # Ensure all dependencies are installed
@@ -254,22 +254,21 @@ pulumi-destroy: ## Destroy Pulumi resources
 
 # Provider
 build_provider:: ensure ## Build the provider
-	cp ${SCHEMA_PATH} provider/cmd/${PROVIDER}/
-	cd provider/cmd/${PROVIDER}/ && \
-       		yarn install && \
+	cp ${SCHEMA_PATH} ${WORKING_DIR}/provider/cmd/${PROVIDER}/
+	cd ${WORKING_DIR}/provider/cmd/${PROVIDER}/ && \
        		yarn tsc && \
        		cp package.json schema.json ./bin && \
        		sed -i.bak -e "s/\$${VERSION}/$(VERSION)/g" bin/package.json
 
 install_provider:: PKG_ARGS := --no-bytecode --public-packages "*" --public
 install_provider:: build_provider ## Install the provider
-	cd provider/cmd/${PROVIDER}/ && \
+	cd ${WORKING_DIR}/provider/cmd/${PROVIDER}/ && \
 		yarn run pkg . ${PKG_ARGS} --target node18 --output ../../../bin/${PROVIDER}
 
 # builds all providers required for publishing
 dist:: PKG_ARGS := --no-bytecode --public-packages "*" --public
 dist:: build_provider ## Build distribution packages for all platforms
-	cd provider/cmd/${PROVIDER}/ && \
+	cd ${WORKING_DIR}/provider/cmd/${PROVIDER}/ && \
  		yarn run pkg . ${PKG_ARGS} --target node18-macos-x64 --output ../../../bin/darwin-amd64/${PROVIDER} && \
  		yarn run pkg . ${PKG_ARGS} --target node18-macos-arm64 --output ../../../bin/darwin-arm64/${PROVIDER} && \
  		yarn run pkg . ${PKG_ARGS} --target node18-linuxstatic-x64 --output ../../../bin/linux-amd64/${PROVIDER} && \
@@ -285,8 +284,8 @@ dist:: build_provider ## Build distribution packages for all platforms
 # Go SDK
 gen_go_sdk:: ## Generate Go SDK
 	rm -rf sdk/go
-	cd provider/cmd/${CODEGEN} && go run . go ../../../sdk/go ${SCHEMA_PATH}
-	node ${WORKING_DIR}/scripts/generate-sdk-readme.js go sdk/go/README.md
+	cd ${WORKING_DIR}/provider/cmd/${CODEGEN} && go run . go ../../../sdk/go ${SCHEMA_PATH}
+	cd ${WORKING_DIR} && node ${WORKING_DIR}/scripts/generate-sdk-readme.js go sdk/go/README.md
 
 ## Empty build target for Go
 build_go_sdk:: ## Build Go SDK (empty target)
@@ -295,12 +294,12 @@ build_go_sdk:: ## Build Go SDK (empty target)
 # .NET SDK
 gen_dotnet_sdk:: ## Generate .NET SDK
 	rm -rf sdk/dotnet
-	cd provider/cmd/${CODEGEN} && go run . dotnet ../../../sdk/dotnet ${SCHEMA_PATH}
-	node ${WORKING_DIR}/scripts/generate-sdk-readme.js dotnet sdk/dotnet/README.md
+	cd ${WORKING_DIR}/provider/cmd/${CODEGEN} && go run . dotnet ../../../sdk/dotnet ${SCHEMA_PATH}
+	cd ${WORKING_DIR} && node ${WORKING_DIR}/scripts/generate-sdk-readme.js dotnet sdk/dotnet/README.md
 
 build_dotnet_sdk:: DOTNET_VERSION := ${VERSION}
 build_dotnet_sdk:: gen_dotnet_sdk ## Build .NET SDK
-	cd sdk/dotnet/ && \
+	cd ${WORKING_DIR}/sdk/dotnet/ && \
 		echo "${DOTNET_VERSION}" >version.txt && \
 		dotnet build /p:Version=${DOTNET_VERSION}
 
@@ -313,15 +312,15 @@ install_dotnet_sdk:: build_dotnet_sdk ## Install .NET SDK
 # Node.js SDK
 gen_nodejs_sdk:: ## Generate Node.js SDK
 	rm -rf sdk/nodejs
-	cd provider/cmd/${CODEGEN} && go run . nodejs ../../../sdk/nodejs ${SCHEMA_PATH}
-	node ${WORKING_DIR}/scripts/generate-sdk-readme.js nodejs sdk/nodejs/README.md
+	cd ${WORKING_DIR}/provider/cmd/${CODEGEN} && go run . nodejs ../../../sdk/nodejs ${SCHEMA_PATH}
+	cd ${WORKING_DIR} && node ${WORKING_DIR}/scripts/generate-sdk-readme.js nodejs sdk/nodejs/README.md
 	# Remove the main field from package.json if it exists
-	cd sdk/nodejs && node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); delete pkg.main; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 4));"
+	cd ${WORKING_DIR}/sdk/nodejs && node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); delete pkg.main; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 4));"
 	# Fix the SDK types for VectorStore.expiresAfter
-	node ${WORKING_DIR}/scripts/fix-sdk-types.js
+	cd ${WORKING_DIR}/sdk/nodejs && node ${WORKING_DIR}/scripts/fix-sdk-types.js
 
 build_nodejs_sdk:: gen_nodejs_sdk ## Build Node.js SDK
-	cd sdk/nodejs/ && \
+	cd ${WORKING_DIR}/sdk/nodejs/ && \
 		yarn install && \
 		yarn run tsc --version && \
 		yarn run tsc && \
@@ -336,12 +335,12 @@ install_nodejs_sdk:: build_nodejs_sdk ## Install Node.js SDK
 # Python SDK
 gen_python_sdk:: ## Generate Python SDK
 	rm -rf sdk/python
-	cd provider/cmd/${CODEGEN} && go run . python ../../../sdk/python ${SCHEMA_PATH}
-	node ${WORKING_DIR}/scripts/generate-sdk-readme.js python sdk/python/README.md
+	cd ${WORKING_DIR}/provider/cmd/${CODEGEN} && go run . python ../../../sdk/python ${SCHEMA_PATH}
+	cd ${WORKING_DIR} && node ${WORKING_DIR}/scripts/generate-sdk-readme.js python sdk/python/README.md
 
 build_python_sdk:: PYPI_VERSION := ${VERSION}
 build_python_sdk:: gen_python_sdk ## Build Python SDK
-	cd sdk/python/ && \
+	cd ${WORKING_DIR}/sdk/python/ && \
 		python3 setup.py clean --all 2>/dev/null && \
 		rm -rf ./bin/ ../python.bin/ && cp -R . ../python.bin && mv ../python.bin ./bin && \
 		sed -i.bak -e 's/^VERSION = .*/VERSION = "$(PYPI_VERSION)"/g' -e 's/^PLUGIN_VERSION = .*/PLUGIN_VERSION = "$(VERSION)"/g' ./bin/setup.py && \

@@ -182,6 +182,10 @@ The provider plugin can be packaged into a tarball and hosted at a custom server
 
 Currently, five tarball files are necessary for Linux, macOS, and Windows (`pulumi-resource-openai-v0.0.1-linux-amd64.tar.gz`, `pulumi-resource-openai-v0.0.1-linux-arm64.tar.gz` `pulumi-resource-openai-v0.0.1-darwin-amd64.tar.gz`, `pulumi-resource-openai-v0.0.1-darwin-arm64.tar.gz`, `pulumi-resource-openai-v0.0.1-windows-amd64.tar.gz`) each containing the same files: the platform-specific binary `pulumi-resource-openai`, README and LICENSE. The full set of binaries can be automatically generated using the command `make dist`.
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## Configuring CI and releases
 
 1. Follow the instructions laid out in the [deployment templates](./deployment-templates/README-DEPLOYMENT.md).

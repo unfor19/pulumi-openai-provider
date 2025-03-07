@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push: {}
+env:
+  PROVIDER: "openai"
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4.2.2
+      - name: Unshallow clone for tags
+        run: git fetch --prune --unshallow --tags
+      - name: Setup Node
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: |
+            provider/cmd/pulumi-resource-openai/package.json
+            provider/cmd/pulumi-resource-openai/yarn.lock
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          check-latest: true
+          cache-dependency-path: |
+            provider/cmd/pulumi-gen-openai/go.sum
+            provider/cmd/pulumi-gen-openai/go.mod
+      - uses: MOZGIII/install-ldid-action@v1
+        with:
+          tag: v2.1.5-procursus2
+      - name: Install pulumictl
+        uses: jaxxstorm/action-install-gh-release@v1.14.0
+        with:
+          repo: pulumi/pulumictl
+      - name: Install Pulumi CLI
+        uses: pulumi/action-install-pulumi-cli@v2.0.0
+      - name: Install Dependencies
+        run: make dependencies-install
+      - name: Generate SDKs
+        run: make generate
+      - name: Build Provider
+        run: make build
