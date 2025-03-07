@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to the vectorStore.ts file
-const vectorStorePath = path.join(__dirname, 'sdk', 'nodejs', 'vectorStore.ts');
+const vectorStorePath = path.join(process.cwd(), 'sdk', 'nodejs', 'vectorStore.ts');
 
 // Read the file
 let content = fs.readFileSync(vectorStorePath, 'utf8');

@@ -218,25 +218,29 @@ generate:: gen_go_sdk gen_dotnet_sdk gen_nodejs_sdk gen_python_sdk ## Generate S
 
 build:: build_provider build_dotnet_sdk build_nodejs_sdk build_python_sdk ## Build provider and SDKs
 
-install:: install_provider install_dotnet_sdk install_nodejs_sdk ## Install provider and SDKs
 
-# Pulumi operations
-pulumi-login: ## Login to Pulumi
-	pulumi login
-
-example-simple-install: install_provider ## Install dependencies for the simple example and link the provider
+example-simple-install: ## Install dependencies for the simple example and link the provider
 	cd ${WORKING_DIR}/provider/cmd/${PROVIDER}/bin && yarn link && \
 	cd ${WORKING_DIR}/examples/simple && \
 		yarn install && \
 		yarn link "@pulumi/openai" && \
 		yarn tsc --version
 
+install:: install_provider install_dotnet_sdk install_nodejs_sdk example-simple-install ## Install provider and SDKs
+
+generate-build-install: generate build install ## Generate, build, and install provider and SDKs
+
+# Pulumi operations
+pulumi-login: ## Login to Pulumi
+	pulumi login
+
+
 pulumi-stack-init: ## Initialize a new Pulumi stack
 	cd examples/simple && pulumi stack init dev
 
 pulumi-preview: ## Preview Pulumi changes
 	@echo "Running Pulumi preview..."
-	@cd examples/simple && pulumi preview --diff
+	@cd examples/simple && pulumi preview --diff --create
 
 preview: pulumi-preview
 
@@ -282,6 +286,7 @@ dist:: build_provider ## Build distribution packages for all platforms
 gen_go_sdk:: ## Generate Go SDK
 	rm -rf sdk/go
 	cd provider/cmd/${CODEGEN} && go run . go ../../../sdk/go ${SCHEMA_PATH}
+	node ${WORKING_DIR}/scripts/generate-sdk-readme.js go sdk/go/README.md
 
 ## Empty build target for Go
 build_go_sdk:: ## Build Go SDK (empty target)
@@ -291,6 +296,7 @@ build_go_sdk:: ## Build Go SDK (empty target)
 gen_dotnet_sdk:: ## Generate .NET SDK
 	rm -rf sdk/dotnet
 	cd provider/cmd/${CODEGEN} && go run . dotnet ../../../sdk/dotnet ${SCHEMA_PATH}
+	node ${WORKING_DIR}/scripts/generate-sdk-readme.js dotnet sdk/dotnet/README.md
 
 build_dotnet_sdk:: DOTNET_VERSION := ${VERSION}
 build_dotnet_sdk:: gen_dotnet_sdk ## Build .NET SDK
@@ -308,17 +314,18 @@ install_dotnet_sdk:: build_dotnet_sdk ## Install .NET SDK
 gen_nodejs_sdk:: ## Generate Node.js SDK
 	rm -rf sdk/nodejs
 	cd provider/cmd/${CODEGEN} && go run . nodejs ../../../sdk/nodejs ${SCHEMA_PATH}
+	node ${WORKING_DIR}/scripts/generate-sdk-readme.js nodejs sdk/nodejs/README.md
 	# Remove the main field from package.json if it exists
 	cd sdk/nodejs && node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); delete pkg.main; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 4));"
 	# Fix the SDK types for VectorStore.expiresAfter
-	node ${WORKING_DIR}/fix-sdk-types.js
+	node ${WORKING_DIR}/scripts/fix-sdk-types.js
 
 build_nodejs_sdk:: gen_nodejs_sdk ## Build Node.js SDK
 	cd sdk/nodejs/ && \
 		yarn install && \
 		yarn run tsc --version && \
 		yarn run tsc && \
-		cp ../../README.md ../../LICENSE yarn.lock ./bin/ && \
+		cp README.md ../../LICENSE yarn.lock ./bin/ && \
 		sed -i.bak -e "s/\$${VERSION}/$(VERSION)/g" ./bin/package.json && \
 		rm ./bin/package.json.bak
 
@@ -330,7 +337,7 @@ install_nodejs_sdk:: build_nodejs_sdk ## Install Node.js SDK
 gen_python_sdk:: ## Generate Python SDK
 	rm -rf sdk/python
 	cd provider/cmd/${CODEGEN} && go run . python ../../../sdk/python ${SCHEMA_PATH}
-	cp ${WORKING_DIR}/README.md sdk/python
+	node ${WORKING_DIR}/scripts/generate-sdk-readme.js python sdk/python/README.md
 
 build_python_sdk:: PYPI_VERSION := ${VERSION}
 build_python_sdk:: gen_python_sdk ## Build Python SDK
