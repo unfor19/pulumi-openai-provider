@@ -6,6 +6,7 @@
         "openai",
         "ai",
         "assistant",
+        "vector-store",
         "category/ai"
     ],
     "scripts": {

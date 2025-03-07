@@ -238,8 +238,12 @@ pulumi-preview: ## Preview Pulumi changes
 	@echo "Running Pulumi preview..."
 	@cd examples/simple && pulumi preview --diff
 
+preview: pulumi-preview
+
 pulumi-up: ## Apply Pulumi changes
-	cd examples/simple && pulumi up
+	cd examples/simple && pulumi up --diff
+
+up: pulumi-up
 
 pulumi-destroy: ## Destroy Pulumi resources
 	cd examples/simple && pulumi destroy
@@ -306,6 +310,8 @@ gen_nodejs_sdk:: ## Generate Node.js SDK
 	cd provider/cmd/${CODEGEN} && go run . nodejs ../../../sdk/nodejs ${SCHEMA_PATH}
 	# Remove the main field from package.json if it exists
 	cd sdk/nodejs && node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); delete pkg.main; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 4));"
+	# Fix the SDK types for VectorStore.expiresAfter
+	node ${WORKING_DIR}/fix-sdk-types.js
 
 build_nodejs_sdk:: gen_nodejs_sdk ## Build Node.js SDK
 	cd sdk/nodejs/ && \
