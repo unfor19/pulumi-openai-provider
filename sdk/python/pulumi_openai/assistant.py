@@ -118,7 +118,7 @@ class AssistantArgs:
         pulumi.set(self, "tools", value)
 
 
-class Assistant(pulumi.ComponentResource):
+class Assistant(pulumi.CustomResource):
     @overload
     def __init__(__self__,
                  resource_name: str,
@@ -174,9 +174,7 @@ class Assistant(pulumi.ComponentResource):
         opts = pulumi.ResourceOptions.merge(_utilities.get_resource_opts_defaults(), opts)
         if not isinstance(opts, pulumi.ResourceOptions):
             raise TypeError('Expected resource options to be a ResourceOptions instance')
-        if opts.id is not None:
-            raise ValueError('ComponentResource classes do not support opts.id')
-        else:
+        if opts.id is None:
             if __props__ is not None:
                 raise TypeError('__props__ is only valid when passed in combination with a valid opts.id to get an existing resource')
             __props__ = AssistantArgs.__new__(AssistantArgs)
@@ -198,8 +196,34 @@ class Assistant(pulumi.ComponentResource):
             'openai:index:Assistant',
             resource_name,
             __props__,
-            opts,
-            remote=True)
+            opts)
+
+    @staticmethod
+    def get(resource_name: str,
+            id: pulumi.Input[str],
+            opts: Optional[pulumi.ResourceOptions] = None) -> 'Assistant':
+        """
+        Get an existing Assistant resource's state with the given name, id, and optional extra
+        properties used to qualify the lookup.
+
+        :param str resource_name: The unique name of the resulting resource.
+        :param pulumi.Input[str] id: The unique provider ID of the resource to lookup.
+        :param pulumi.ResourceOptions opts: Options for the resource.
+        """
+        opts = pulumi.ResourceOptions.merge(opts, pulumi.ResourceOptions(id=id))
+
+        __props__ = AssistantArgs.__new__(AssistantArgs)
+
+        __props__.__dict__["created_at"] = None
+        __props__.__dict__["file_ids"] = None
+        __props__.__dict__["id"] = None
+        __props__.__dict__["instructions"] = None
+        __props__.__dict__["metadata"] = None
+        __props__.__dict__["model"] = None
+        __props__.__dict__["name"] = None
+        __props__.__dict__["object"] = None
+        __props__.__dict__["tools"] = None
+        return Assistant(resource_name, opts=opts, __props__=__props__)
 
     @property
     @pulumi.getter(name="createdAt")

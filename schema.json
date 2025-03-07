@@ -24,7 +24,7 @@
     },
     "resources": {
         "openai:index:Assistant": {
-            "isComponent": true,
+            "isComponent": false,
             "inputProperties": {
                 "name": {
                     "type": "string",

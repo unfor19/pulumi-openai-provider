@@ -54,6 +54,41 @@ func main() {
 	case "nodejs":
 		langOptions["dependencies"] = `{"openai":"^4.0.0"}`
 		langOptions["devDependencies"] = `{"typescript":"^4.6.3"}`
+		langOptions["packagejsontemplate"] = `{
+			"name": "${PKG}",
+			"version": "${VERSION}",
+			"type": "module",
+			"exports": {
+				".": {
+					"types": "./index.d.ts",
+					"import": "./index.js",
+					"require": "./index.js"
+				}
+			},
+			"keywords": [
+				"pulumi",
+				"openai",
+				"ai",
+				"assistant",
+				"category/ai"
+			],
+			"scripts": {
+				"build": "tsc",
+				"postinstall": "node ./scripts/postinstall.js"
+			},
+			"dependencies": {
+				"@pulumi/pulumi": "^3.142.0",
+				"openai": "^4.0.0"
+			},
+			"devDependencies": {
+				"@types/node": "^14",
+				"typescript": "^4.6.3"
+			},
+			"pulumi": {
+				"resource": true,
+				"name": "openai"
+			}
+		}`
 		files, err = nodejs.GeneratePackage(tool, pkg, extraFiles, langOptions, true)
 	case "python":
 		files, err = python.GeneratePackage(tool, pkg, extraFiles)

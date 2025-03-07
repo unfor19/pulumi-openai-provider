@@ -236,7 +236,7 @@ pulumi-stack-init: ## Initialize a new Pulumi stack
 
 pulumi-preview: ## Preview Pulumi changes
 	@echo "Running Pulumi preview..."
-	@cd examples/simple && pulumi preview
+	@cd examples/simple && pulumi preview --diff
 
 pulumi-up: ## Apply Pulumi changes
 	cd examples/simple && pulumi up
@@ -304,13 +304,15 @@ install_dotnet_sdk:: build_dotnet_sdk ## Install .NET SDK
 gen_nodejs_sdk:: ## Generate Node.js SDK
 	rm -rf sdk/nodejs
 	cd provider/cmd/${CODEGEN} && go run . nodejs ../../../sdk/nodejs ${SCHEMA_PATH}
+	# Remove the main field from package.json if it exists
+	cd sdk/nodejs && node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); delete pkg.main; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 4));"
 
 build_nodejs_sdk:: gen_nodejs_sdk ## Build Node.js SDK
 	cd sdk/nodejs/ && \
 		yarn install && \
 		yarn run tsc --version && \
 		yarn run tsc && \
-		cp ../../README.md ../../LICENSE package.json yarn.lock ./bin/ && \
+		cp ../../README.md ../../LICENSE yarn.lock ./bin/ && \
 		sed -i.bak -e "s/\$${VERSION}/$(VERSION)/g" ./bin/package.json && \
 		rm ./bin/package.json.bak
 

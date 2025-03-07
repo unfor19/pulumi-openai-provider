@@ -13,7 +13,6 @@
   "scripts": {
     "build": "tsc && cp package.json schema.json ./bin/"
   },
-  "main": "bin/index.js",
   "bin": "bin/index.js",
   "license": "Apache-2.0"
 }

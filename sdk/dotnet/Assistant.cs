@@ -10,7 +10,7 @@ using Pulumi.Serialization;
 namespace Pulumi.Openai
 {
     [OpenaiResourceType("openai:index:Assistant")]
-    public partial class Assistant : global::Pulumi.ComponentResource
+    public partial class Assistant : global::Pulumi.CustomResource
     {
         /// <summary>
         /// The Unix timestamp (in seconds) for when the assistant was created.
@@ -74,21 +74,38 @@ namespace Pulumi.Openai
         /// <param name="name">The unique name of the resource</param>
         /// <param name="args">The arguments used to populate this resource's properties</param>
         /// <param name="options">A bag of options that control this resource's behavior</param>
-        public Assistant(string name, AssistantArgs args, ComponentResourceOptions? options = null)
-            : base("openai:index:Assistant", name, args ?? new AssistantArgs(), MakeResourceOptions(options, ""), remote: true)
+        public Assistant(string name, AssistantArgs args, CustomResourceOptions? options = null)
+            : base("openai:index:Assistant", name, args ?? new AssistantArgs(), MakeResourceOptions(options, ""))
         {
         }
 
-        private static ComponentResourceOptions MakeResourceOptions(ComponentResourceOptions? options, Input<string>? id)
+        private Assistant(string name, Input<string> id, CustomResourceOptions? options = null)
+            : base("openai:index:Assistant", name, null, MakeResourceOptions(options, id))
         {
-            var defaultOptions = new ComponentResourceOptions
+        }
+
+        private static CustomResourceOptions MakeResourceOptions(CustomResourceOptions? options, Input<string>? id)
+        {
+            var defaultOptions = new CustomResourceOptions
             {
                 Version = Utilities.Version,
             };
-            var merged = ComponentResourceOptions.Merge(defaultOptions, options);
+            var merged = CustomResourceOptions.Merge(defaultOptions, options);
             // Override the ID if one was specified for consistency with other language SDKs.
             merged.Id = id ?? merged.Id;
             return merged;
+        }
+        /// <summary>
+        /// Get an existing Assistant resource's state with the given name, ID, and optional extra
+        /// properties used to qualify the lookup.
+        /// </summary>
+        ///
+        /// <param name="name">The unique name of the resulting resource.</param>
+        /// <param name="id">The unique provider ID of the resource to lookup.</param>
+        /// <param name="options">A bag of options that control this resource's behavior</param>
+        public static Assistant Get(string name, Input<string> id, CustomResourceOptions? options = null)
+        {
+            return new Assistant(name, id, options);
         }
     }
 

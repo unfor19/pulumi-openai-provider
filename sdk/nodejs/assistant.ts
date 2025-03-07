@@ -4,7 +4,19 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as utilities from "./utilities";
 
-export class Assistant extends pulumi.ComponentResource {
+export class Assistant extends pulumi.CustomResource {
+    /**
+     * Get an existing Assistant resource's state with the given name, ID, and optional extra
+     * properties used to qualify the lookup.
+     *
+     * @param name The _unique_ name of the resulting resource.
+     * @param id The _unique_ provider ID of the resource to lookup.
+     * @param opts Optional settings to control the behavior of the CustomResource.
+     */
+    public static get(name: string, id: pulumi.Input<pulumi.ID>, opts?: pulumi.CustomResourceOptions): Assistant {
+        return new Assistant(name, undefined as any, { ...opts, id: id });
+    }
+
     /** @internal */
     public static readonly __pulumiType = 'openai:index:Assistant';
 
@@ -63,7 +75,7 @@ export class Assistant extends pulumi.ComponentResource {
      * @param args The arguments to use to populate this resource's properties.
      * @param opts A bag of options that control this resource's behavior.
      */
-    constructor(name: string, args: AssistantArgs, opts?: pulumi.ComponentResourceOptions) {
+    constructor(name: string, args: AssistantArgs, opts?: pulumi.CustomResourceOptions) {
         let resourceInputs: pulumi.Inputs = {};
         opts = opts || {};
         if (!opts.id) {
@@ -94,7 +106,7 @@ export class Assistant extends pulumi.ComponentResource {
             resourceInputs["tools"] = undefined /*out*/;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
-        super(Assistant.__pulumiType, name, resourceInputs, opts, true /*remote*/);
+        super(Assistant.__pulumiType, name, resourceInputs, opts);
     }
 }
 

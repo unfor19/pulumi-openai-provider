@@ -9,5 +9,10 @@ const assistant = new Assistant("test-assistant", {
     tools: [{ type: "code_interpreter" }],
 });
 
+// Export the assistant properties
+export const assistantName = assistant.name;
+export const assistantModel = assistant.model;
+export const assistantInstructions = assistant.instructions;
+
 // Export the assistant ID
 export const assistantId = assistant.id;
