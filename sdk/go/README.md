@@ -1,4 +1,4 @@
-# Pulumi OpenAI Provider - Python SDK
+# Pulumi OpenAI Provider - Go SDK
 
 This repo contains a Pulumi provider for managing OpenAI resources. The provider allows you to create, update, and delete OpenAI resources using Pulumi's infrastructure as code approach.
 
@@ -144,20 +144,36 @@ const apiKey = config.requireSecret("apiKey");
 ## Example Usage
 
 
-```python
-import pulumi
-import pulumi_openai as openai
+```go
+package main
 
-# Create an OpenAI Assistant
-assistant = openai.Assistant("my-assistant",
-    name="My Helpful Assistant",
-    instructions="You are a helpful assistant that provides concise answers.",
-    model="gpt-4",
-    tools=[{"type": "code_interpreter"}]
+import (
+	"github.com/pulumi/pulumi-openai/sdk/go/openai"
+	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-# Export the assistant ID
-pulumi.export("assistant_id", assistant.id)
+func main() {
+	pulumi.Run(func(ctx *pulumi.Context) error {
+		// Create an OpenAI Assistant
+		assistant, err := openai.NewAssistant(ctx, "my-assistant", &openai.AssistantArgs{
+			Name:         pulumi.String("My Helpful Assistant"),
+			Instructions: pulumi.String("You are a helpful assistant that provides concise answers."),
+			Model:        pulumi.String("gpt-4"),
+			Tools: pulumi.MapArray{
+				pulumi.StringMap{
+					"type": pulumi.String("code_interpreter"),
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		// Export the assistant ID
+		ctx.Export("assistantId", assistant.ID())
+		return nil
+	})
+}
 ```
 
 ## Packaging

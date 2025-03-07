@@ -37,27 +37,97 @@ After running `make install`, `pulumi-resource-openai` will be available in the 
 - .NET Core SDK (to build the .NET SDK)
 - OpenAI API Key
 
-## Build and Test
+## Development Workflow
+
+This section outlines the recommended development workflow for this Pulumi provider.
+
+### Initial Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/pulumi-openai-provider.git
+   cd pulumi-openai-provider
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   make dependencies-install
+   ```
+
+3. **Set your OpenAI API key**:
+   ```bash
+   export OPENAI_API_KEY=your-api-key-here
+   # Or create a .env file in the project root
+   echo "OPENAI_API_KEY=your-api-key-here" > .env
+   ```
+
+### Development Cycle
+
+1. **Make changes to the schema**:
+   Edit `schema.json` to define or update resources.
+
+2. **Generate SDKs**:
+   ```bash
+   make generate
+   ```
+
+3. **Build the provider**:
+   ```bash
+   make build
+   ```
+
+4. **Install the provider locally**:
+   ```bash
+   make install
+   ```
+
+5. **Generate Build and Install** in a single command:
+   ```bash
+   make generate-build-install
+   ```
+
+6. **Test your changes**:
+   ```bash
+   make pulumi-preview  # Preview changes
+   make pulumi-up       # Apply changes
+   ```
+
+7. **Clean up resources when done**:
+   ```bash
+   make pulumi-destroy
+   ```
+
+### Distribution
+
+To build distribution packages for all supported platforms:
 
 ```bash
-# Build and install the provider
-make install_provider
-
-# Regenerate SDKs
-make generate
-
-# Ensure the pulumi-provider-openai script is on PATH
-$ export PATH=$PATH:$PWD/bin
-
-# Test Node.js SDK
-$ make install_nodejs_sdk
-$ cd examples/simple
-$ yarn install
-$ yarn link @pulumi/openai
-$ pulumi stack init test
-$ export OPENAI_API_KEY=your-api-key-here
-$ pulumi up
+make dist
 ```
+
+This will create tarballs in the `dist` directory for Linux, macOS, and Windows.
+
+### Common Tasks
+
+- **List OpenAI assistants**:
+  ```bash
+  make list-assistants
+  ```
+
+- **Regenerate a specific SDK**:
+  ```bash
+  make gen_nodejs_sdk  # For Node.js
+  make gen_python_sdk  # For Python
+  make gen_go_sdk      # For Go
+  make gen_dotnet_sdk  # For .NET
+  ```
+
+- **Build a specific SDK**:
+  ```bash
+  make build_nodejs_sdk  # For Node.js
+  make build_python_sdk  # For Python
+  make build_dotnet_sdk  # For .NET
+  ```
 
 ## Configuration
 
@@ -94,6 +164,10 @@ export const assistantId = assistant.id;
 The provider plugin can be packaged into a tarball and hosted at a custom server URL to make it easier to distribute to users.
 
 Currently, five tarball files are necessary for Linux, macOS, and Windows (`pulumi-resource-openai-v0.0.1-linux-amd64.tar.gz`, `pulumi-resource-openai-v0.0.1-linux-arm64.tar.gz` `pulumi-resource-openai-v0.0.1-darwin-amd64.tar.gz`, `pulumi-resource-openai-v0.0.1-darwin-arm64.tar.gz`, `pulumi-resource-openai-v0.0.1-windows-amd64.tar.gz`) each containing the same files: the platform-specific binary `pulumi-resource-openai`, README and LICENSE. The full set of binaries can be automatically generated using the command `make dist`.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Configuring CI and releases
 
