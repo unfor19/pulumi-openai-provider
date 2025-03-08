@@ -118,8 +118,27 @@ export class VectorStoreResource implements OpenAIResource {
                 params.name = name;
             }
             
+            // Handle metadata updates, including property removals
             if (metadata) {
-                params.metadata = metadata;
+                // Start with the new metadata
+                params.metadata = { ...metadata };
+                
+                // Check for properties that need to be explicitly set to null
+                if (olds.metadata) {
+                    debugLog("VectorStoreResource", "Old metadata: %o", olds.metadata);
+                    debugLog("VectorStoreResource", "New metadata before: %o", params.metadata);
+                    
+                    // For each property in the old metadata that's not in the new metadata,
+                    // explicitly set it to null to remove it
+                    for (const key of Object.keys(olds.metadata)) {
+                        if (!(key in params.metadata)) {
+                            debugLog("VectorStoreResource", "Setting %s to null", key);
+                            params.metadata[key] = null;
+                        }
+                    }
+                    
+                    debugLog("VectorStoreResource", "New metadata after: %o", params.metadata);
+                }
             }
             
             if (expiresAfter !== undefined) {

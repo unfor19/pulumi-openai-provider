@@ -1,12 +1,14 @@
 import { Assistant, VectorStore } from "@pulumi/openai";
 
+const sharedMetadata = {
+    purpose: "testing",
+    environment: "development",
+}
+
 // Create an OpenAI Vector Store
 const vectorStore = new VectorStore("test-vector-store", {
     name: "Test Vector Store",
-    metadata: {
-        purpose: "testing",
-        environment: "development"
-    },
+    metadata: sharedMetadata,
     
     // Optional: Set an expiration policy for the vector store
     expiresAfter: {
@@ -26,8 +28,11 @@ const assistant = new Assistant("test-assistant", {
     model: "gpt-4-turbo-preview",
     instructions: "You are a helpful assistant that specializes in testing Pulumi providers.",
     tools: [{ type: "code_interpreter" }, { type: "file_search" }],
-    // Use fileIds for backward compatibility
+    // Include fileIds for backward compatibility
     fileIds: [],
+    // Add metadata without vectorStoreId
+    metadata: sharedMetadata,
+    // Use toolResources with the flattened structure that the SDK expects
     toolResources: {
         "codeInterpreter.fileIds": "",
         "fileSearch.vectorStoreIds": vectorStore.id

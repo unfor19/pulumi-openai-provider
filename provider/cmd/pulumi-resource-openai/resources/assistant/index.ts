@@ -67,6 +67,22 @@ export class AssistantResource implements OpenAIResource {
         debugLog("ASSISTANT", "Old values:", olds);
         debugLog("ASSISTANT", "New values:", news);
         
+        // Handle metadata changes
+        let metadata = news.metadata || {};
+        
+        // If a property exists in olds.metadata but not in news.metadata, set it to null
+        if (olds.metadata) {
+            debugLog("ASSISTANT", "Old metadata:", olds.metadata);
+            debugLog("ASSISTANT", "New metadata before:", metadata);
+            for (const key of Object.keys(olds.metadata)) {
+                if (!(key in metadata)) {
+                    debugLog("ASSISTANT", `Setting ${key} to null`);
+                    metadata[key] = null;
+                }
+            }
+            debugLog("ASSISTANT", "New metadata after:", metadata);
+        }
+        
         const updateParams: AssistantUpdateParams = {
             name: news.name,
             instructions: news.instructions,
@@ -74,7 +90,7 @@ export class AssistantResource implements OpenAIResource {
             tools: news.tools || [],
             tool_resources: news.toolResources ? {
                 code_interpreter: news.toolResources["codeInterpreter.fileIds"] ? {
-                    file_ids: typeof news.toolResources["codeInterpreter.fileIds"] === "string" ? JSON.parse(news.toolResources["codeInterpreter.fileIds"]) : news.toolResources["codeInterpreter.fileIds"]
+                    file_ids: typeof news.toolResources["codeInterpreter.fileIds"] === "string" ? (news.toolResources["codeInterpreter.fileIds"].startsWith("[") ? JSON.parse(news.toolResources["codeInterpreter.fileIds"]) : [news.toolResources["codeInterpreter.fileIds"]]) : news.toolResources["codeInterpreter.fileIds"]
                 } : undefined,
                 file_search: news.toolResources["fileSearch.vectorStoreIds"] ? {
                     vector_store_ids: typeof news.toolResources["fileSearch.vectorStoreIds"] === "string" ? (news.toolResources["fileSearch.vectorStoreIds"].startsWith("[") ? JSON.parse(news.toolResources["fileSearch.vectorStoreIds"]) : [news.toolResources["fileSearch.vectorStoreIds"]]) : news.toolResources["fileSearch.vectorStoreIds"]
@@ -84,7 +100,7 @@ export class AssistantResource implements OpenAIResource {
                     file_ids: news.fileIds
                 }
             } : undefined,
-            metadata: news.metadata || {},
+            metadata: metadata,
             temperature: news.temperature,
             top_p: news.topP,
             response_format: news.responseFormat,
@@ -118,6 +134,95 @@ export class AssistantResource implements OpenAIResource {
         const isEqual = (a: any, b: any, propName: string): boolean => {
             // Debug logging
             debugLog("DIFF", `Comparing ${propName}: Old: ${JSON.stringify(a)}, New: ${JSON.stringify(b)}`);
+            
+            // Special handling for toolResources
+            if (propName === "toolResources") {
+                debugLog("DIFF", "Special handling for toolResources");
+                
+                // If both are empty or undefined, they're equal
+                if ((!a || Object.keys(a).length === 0) && (!b || Object.keys(b).length === 0)) {
+                    debugLog("DIFF", "Both toolResources are empty or undefined");
+                    return true;
+                }
+                
+                // If one is empty and the other isn't, they're not equal
+                if (!a || !b || Object.keys(a).length === 0 || Object.keys(b).length === 0) {
+                    debugLog("DIFF", "One toolResources is empty and the other isn't");
+                    return false;
+                }
+                
+                // Compare codeInterpreter.fileIds
+                const aCodeInterpreterFileIds = a["codeInterpreter.fileIds"] || "";
+                const bCodeInterpreterFileIds = b["codeInterpreter.fileIds"] || "";
+                
+                // Compare fileSearch.vectorStoreIds
+                const aFileSearchVectorStoreIds = a["fileSearch.vectorStoreIds"] || "";
+                const bFileSearchVectorStoreIds = b["fileSearch.vectorStoreIds"] || "";
+                
+                // For string values, compare directly
+                // For array values or JSON strings, normalize and compare
+                const normalizeValue = (value: any): string => {
+                    if (Array.isArray(value)) {
+                        return JSON.stringify(value.sort());
+                    }
+                    if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) {
+                        try {
+                            const parsed = JSON.parse(value);
+                            if (Array.isArray(parsed)) {
+                                return JSON.stringify(parsed.sort());
+                            }
+                        } catch (e) {
+                            // Not valid JSON, treat as string
+                        }
+                    }
+                    return String(value);
+                };
+                
+                const normalizedACodeInterpreter = normalizeValue(aCodeInterpreterFileIds);
+                const normalizedBCodeInterpreter = normalizeValue(bCodeInterpreterFileIds);
+                const normalizedAFileSearch = normalizeValue(aFileSearchVectorStoreIds);
+                const normalizedBFileSearch = normalizeValue(bFileSearchVectorStoreIds);
+                
+                const codeInterpreterEqual = normalizedACodeInterpreter === normalizedBCodeInterpreter;
+                const fileSearchEqual = normalizedAFileSearch === normalizedBFileSearch;
+                
+                if (!codeInterpreterEqual) {
+                    debugLog("DIFF", `codeInterpreter.fileIds differ: ${normalizedACodeInterpreter} vs ${normalizedBCodeInterpreter}`);
+                }
+                
+                if (!fileSearchEqual) {
+                    debugLog("DIFF", `fileSearch.vectorStoreIds differ: ${normalizedAFileSearch} vs ${normalizedBFileSearch}`);
+                }
+                
+                return codeInterpreterEqual && fileSearchEqual;
+            }
+            
+            // Special handling for tools
+            if (propName === "tools") {
+                debugLog("DIFF", "Special handling for tools");
+                
+                // If both are arrays, compare only the type property
+                if (Array.isArray(a) && Array.isArray(b)) {
+                    if (a.length !== b.length) {
+                        debugLog("DIFF", `${propName} - Array lengths differ: ${a.length} vs ${b.length}`);
+                        return false;
+                    }
+                    
+                    // Compare only the type property
+                    for (let i = 0; i < a.length; i++) {
+                        const aType = a[i].type;
+                        const bType = b[i].type;
+                        
+                        if (aType !== bType) {
+                            debugLog("DIFF", `${propName} - Types differ at index ${i}: ${aType} vs ${bType}`);
+                            return false;
+                        }
+                    }
+                    
+                    debugLog("DIFF", `${propName} - All types match`);
+                    return true;
+                }
+            }
             
             // If both are null or undefined, they're equal
             if (a == null && b == null) return true;
@@ -207,6 +312,13 @@ export class AssistantResource implements OpenAIResource {
         if (!isEqual(olds.model, news.model, "model")) changes.push("model");
         if (!isEqual(olds.tools || [], news.tools || [], "tools")) changes.push("tools");
         if (!isEqual(olds.fileIds || [], news.fileIds || [], "fileIds")) changes.push("fileIds");
+        
+        // Check for changes in toolResources
+        if (!isEqual(olds.toolResources || {}, news.toolResources || {}, "toolResources")) {
+            debugLog("DIFF", "Removing toolResources from changes array");
+            // Don't add to changes array - we'll handle this specially
+        }
+        
         if (!isEqual(olds.metadata || {}, news.metadata || {}, "metadata")) changes.push("metadata");
         if (!isEqual(olds.temperature, news.temperature, "temperature")) changes.push("temperature");
         if (!isEqual(olds.topP, news.topP, "topP")) changes.push("topP");
