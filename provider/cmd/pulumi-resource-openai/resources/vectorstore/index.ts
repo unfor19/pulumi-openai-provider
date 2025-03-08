@@ -2,12 +2,14 @@ import * as pulumi from "@pulumi/pulumi";
 import * as provider from "@pulumi/pulumi/provider";
 import OpenAI from "openai";
 import { debugLog } from "../../utils";
-import { OpenAIResource } from "../base";
+import { BaseResource } from "../base";
 
 /**
  * VectorStoreResource implements the OpenAI Vector Store resource type
  */
-export class VectorStoreResource implements OpenAIResource {
+export class VectorStoreResource extends BaseResource {
+    protected resourceType = "VECTORSTORE";
+
     async create(client: OpenAI, inputs: any): Promise<provider.CreateResult> {
         // Check if we're in preview mode
         if (pulumi.runtime.isDryRun()) {
@@ -190,11 +192,34 @@ export class VectorStoreResource implements OpenAIResource {
     }
 
     diff(olds: any, news: any): provider.DiffResult {
-        debugLog("VectorStoreResource", "diff called with olds: %o, news: %o", olds, news);
+        debugLog("VectorStoreResource", "diff called with olds:", olds, "news:", news);
 
+        let changes: boolean = false;
         const replaces: string[] = [];
         const stables: string[] = ["id", "expiresAt", "lastActiveAt", "createdAt"];
-        let changes = false;
+        const deleteBeforeReplace = false;
+
+        // Check for name changes
+        if (olds.name !== news.name) {
+            debugLog("VectorStoreResource", `Name changed: ${olds.name} -> ${news.name}`);
+            changes = true;
+        }
+
+        // Detect drift in critical properties
+        if (olds.id && olds.status !== "completed") {
+            // If the vector store is not in a completed state, this indicates a drift
+            throw new Error(`Vector store ${olds.id} is in an unexpected state: ${olds.status}. Expected: completed`);
+        }
+
+        // Check if the vector store has been deleted outside of Pulumi
+        if (olds.id && olds.status === "deleted") {
+            throw new Error(`Vector store ${olds.id} has been deleted outside of Pulumi. Please remove it from your Pulumi state.`);
+        }
+
+        // Handle fileIds comparison - empty array is equivalent to undefined/null
+        if (Array.isArray(olds.fileIds) && olds.fileIds.length === 0) {
+            debugLog("VectorStoreResource", "Empty fileIds array is equivalent to undefined/null");
+        }
 
         // Ignore timestamp fields that change frequently
         const ignoredFields = ["expiresAt", "lastActiveAt", "createdAt"];
@@ -308,44 +333,44 @@ export class VectorStoreResource implements OpenAIResource {
             changes,
             replaces,
             stables,
-            deleteBeforeReplace: false,
+            deleteBeforeReplace,
         };
     }
 
     check(inputs: any): any {
-        debugLog("VectorStoreResource", "check called with inputs: %o", inputs);
-        // Validate inputs
+        debugLog("VectorStoreResource", "check called with inputs:", inputs);
+        
+        // Validate required inputs
+        if (!inputs.name) {
+            throw new Error("Vector store name is required");
+        }
+        
+        // Validate API key if provided
+        if (inputs.apiKey && !this.validateApiKey(inputs.apiKey)) {
+            throw new Error("Invalid API key format or length");
+        }
+        
+        // Validate expiresAfter if provided
+        if (inputs.expiresAfter) {
+            if (!inputs.expiresAfter.anchor || !inputs.expiresAfter.days) {
+                throw new Error("expiresAfter must include both anchor and days properties");
+            }
+            
+            if (!['created_at', 'last_active_at'].includes(inputs.expiresAfter.anchor.replace('_', '_'))) {
+                throw new Error("expiresAfter.anchor must be either 'created_at' or 'last_active_at'");
+            }
+            
+            if (typeof inputs.expiresAfter.days !== 'number' || inputs.expiresAfter.days <= 0) {
+                throw new Error("expiresAfter.days must be a positive number");
+            }
+        }
+        
         return inputs;
     }
 
-    preview(inputs: any): provider.CreateResult {
-        debugLog("VectorStoreResource", "preview called with inputs: %o", inputs);
-        
-        // For preview, we'll just return a placeholder ID and the inputs as outputs
-        return {
-            id: "preview-vector-store-id",
-            outs: {
-                id: "preview-vector-store-id",
-                name: inputs.name,
-                metadata: inputs.metadata,
-                fileIds: inputs.fileIds,
-                expiresAfter: inputs.expiresAfter,
-                status: "completed",
-                object: "vector_store",
-                createdAt: new Date().getTime() / 1000,
-                lastActiveAt: new Date().getTime() / 1000,
-                usageBytes: 0,
-                fileCounts: {
-                    total: 0,
-                    completed: 0,
-                    inProgress: 0,
-                    failed: 0,
-                    cancelled: 0
-                }
-            },
-        };
-    }
-
+    /**
+     * Map vector store API response to resource outputs
+     */
     private mapVectorStoreToOutputs(vectorStore: any) {
         debugLog("VectorStoreResource", "mapVectorStoreToOutputs called with: %o", vectorStore);
         
@@ -382,5 +407,100 @@ export class VectorStoreResource implements OpenAIResource {
         
         debugLog("VectorStoreResource", "mapVectorStoreToOutputs returning: %o", outputs);
         return outputs;
+    }
+
+    /**
+     * Check for drift between the actual resource and the desired state
+     */
+    protected checkForDrift(actual: any, desired: any): void {
+        debugLog("VectorStoreResource", "Checking for drift between actual and desired state");
+        
+        // Check for name drift
+        if (actual.name !== desired.name) {
+            debugLog("VectorStoreResource", `Name drift detected: ${actual.name} (actual) vs ${desired.name} (desired)`);
+            console.warn(`WARNING: Vector store name has drifted: ${actual.name} (actual) vs ${desired.name} (desired)`);
+        }
+        
+        // Check for metadata drift
+        if (actual.metadata && desired.metadata) {
+            const actualMetadataKeys = Object.keys(actual.metadata);
+            const desiredMetadataKeys = Object.keys(desired.metadata);
+            
+            // Check for missing keys
+            for (const key of actualMetadataKeys) {
+                if (!desiredMetadataKeys.includes(key)) {
+                    debugLog("VectorStoreResource", `Metadata key drift detected: ${key} exists in actual but not in desired`);
+                    console.warn(`WARNING: Vector store metadata key '${key}' exists in actual resource but not in desired state`);
+                }
+            }
+            
+            // Check for added keys
+            for (const key of desiredMetadataKeys) {
+                if (!actualMetadataKeys.includes(key)) {
+                    debugLog("VectorStoreResource", `Metadata key drift detected: ${key} exists in desired but not in actual`);
+                    console.warn(`WARNING: Vector store metadata key '${key}' exists in desired state but not in actual resource`);
+                }
+            }
+            
+            // Check for value changes
+            for (const key of actualMetadataKeys) {
+                if (desiredMetadataKeys.includes(key) && actual.metadata[key] !== desired.metadata[key]) {
+                    debugLog("VectorStoreResource", `Metadata value drift detected for key ${key}: ${actual.metadata[key]} (actual) vs ${desired.metadata[key]} (desired)`);
+                    console.warn(`WARNING: Vector store metadata value for '${key}' has drifted: ${actual.metadata[key]} (actual) vs ${desired.metadata[key]} (desired)`);
+                }
+            }
+        }
+        
+        // Check for expiresAfter drift
+        if (actual.expiresAfter && desired.expiresAfter) {
+            if (actual.expiresAfter.anchor !== desired.expiresAfter.anchor) {
+                debugLog("VectorStoreResource", `ExpiresAfter anchor drift detected: ${actual.expiresAfter.anchor} (actual) vs ${desired.expiresAfter.anchor} (desired)`);
+                console.warn(`WARNING: Vector store expiresAfter.anchor has drifted: ${actual.expiresAfter.anchor} (actual) vs ${desired.expiresAfter.anchor} (desired)`);
+            }
+            
+            if (actual.expiresAfter.days !== desired.expiresAfter.days) {
+                debugLog("VectorStoreResource", `ExpiresAfter days drift detected: ${actual.expiresAfter.days} (actual) vs ${desired.expiresAfter.days} (desired)`);
+                console.warn(`WARNING: Vector store expiresAfter.days has drifted: ${actual.expiresAfter.days} (actual) vs ${desired.expiresAfter.days} (desired)`);
+            }
+        }
+    }
+
+    /**
+     * Check if a resource with the same name already exists
+     */
+    protected async checkForExistingResource(inputs: any): Promise<void> {
+        if (!inputs.name) {
+            return;
+        }
+        
+        try {
+            debugLog("VectorStoreResource", `Checking if a vector store with name '${inputs.name}' already exists`);
+            
+            // Get the client with the provided API key
+            const defaultClient = new OpenAI();
+            const resourceClient = this.getClient(defaultClient, inputs);
+            
+            // List vector stores to check if one with the same name exists
+            const response = await resourceClient.beta.vectorStores.list();
+            
+            if (response.data) {
+                const existingVectorStore = response.data.find(vs => vs.name === inputs.name);
+                
+                if (existingVectorStore) {
+                    debugLog("VectorStoreResource", `Found existing vector store with name '${inputs.name}' and ID '${existingVectorStore.id}'`);
+                    console.warn(`WARNING: A vector store with name '${inputs.name}' already exists (ID: ${existingVectorStore.id}). Creating a new resource will result in a duplicate.`);
+                } else {
+                    debugLog("VectorStoreResource", `No existing vector store found with name '${inputs.name}'`);
+                }
+            }
+        } catch (error: any) {
+            // If we get an authentication error, the API key is invalid
+            if (error.status === 401) {
+                throw new Error(`Invalid API key: ${error.message}`);
+            }
+            
+            // For other errors, log and continue
+            debugLog("VectorStoreResource", `Error checking for existing vector store: ${error}`);
+        }
     }
 } 

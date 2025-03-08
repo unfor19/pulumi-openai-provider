@@ -2,13 +2,15 @@ import * as pulumi from "@pulumi/pulumi";
 import * as provider from "@pulumi/pulumi/provider";
 import OpenAI from "openai";
 import { type AssistantCreateParams, type AssistantUpdateParams } from "openai/resources/beta/assistants";
-import { OpenAIResource } from "../base";
 import { debugLog } from "../../utils";
+import { BaseResource } from "../base";
 
 /**
- * AssistantResource implements the OpenAI Assistant resource type
+ * Resource implementation for OpenAI Assistants
  */
-export class AssistantResource implements OpenAIResource {
+export class AssistantResource extends BaseResource {
+    protected resourceType = "ASSISTANT";
+
     async create(client: OpenAI, inputs: any): Promise<provider.CreateResult> {
         // Check if we're in preview mode
         if (pulumi.runtime.isDryRun()) {
@@ -123,12 +125,21 @@ export class AssistantResource implements OpenAIResource {
     }
 
     diff(olds: any, news: any): provider.DiffResult {
-        const changes: string[] = [];
-        
-        // Debug logging
         debugLog("DIFF", "Comparing old and new states:");
         debugLog("DIFF", "Old state:", JSON.stringify(olds, null, 2));
         debugLog("DIFF", "New state:", JSON.stringify(news, null, 2));
+
+        // Detect drift in critical properties
+        if (olds.id && olds.object !== "assistant") {
+            throw new Error(`Assistant ${olds.id} has an unexpected object type: ${olds.object}. Expected: assistant`);
+        }
+
+        // Check if the assistant has been deleted outside of Pulumi
+        if (olds.id && !olds.object) {
+            throw new Error(`Assistant ${olds.id} appears to have been deleted outside of Pulumi. Please remove it from your Pulumi state.`);
+        }
+
+        const changes: string[] = [];
         
         // Helper function for deep equality comparison
         const isEqual = (a: any, b: any, propName: string): boolean => {
@@ -335,31 +346,36 @@ export class AssistantResource implements OpenAIResource {
     }
 
     check(inputs: any): any {
-        if (!inputs.model) {
-            throw new Error("model is required for Assistant resources");
+        debugLog("AssistantResource", "check called with inputs:", inputs);
+        
+        // Validate required inputs
+        if (!inputs.name) {
+            throw new Error("Assistant name is required");
         }
+        
+        if (!inputs.model) {
+            throw new Error("Assistant model is required");
+        }
+        
+        // Validate API key if provided
+        if (inputs.apiKey && !this.validateApiKey(inputs.apiKey)) {
+            throw new Error("Invalid API key format or length");
+        }
+        
+        // Validate tools if provided
+        if (inputs.tools && !Array.isArray(inputs.tools)) {
+            throw new Error("Tools must be an array");
+        }
+        
+        // Validate temperature if provided
+        if (inputs.temperature !== undefined && 
+            (typeof inputs.temperature !== 'number' || 
+             inputs.temperature < 0 || 
+             inputs.temperature > 2)) {
+            throw new Error("Temperature must be a number between 0 and 2");
+        }
+        
         return inputs;
-    }
-
-    preview(inputs: any): provider.CreateResult {
-        const previewId = `preview-assistant-${inputs.name}-${inputs.model}`.replace(/\s+/g, '-');
-        return {
-            id: previewId,
-            outs: {
-                id: previewId,
-                createdAt: Date.now(),
-                object: "assistant",
-                name: inputs.name,
-                instructions: inputs.instructions,
-                model: inputs.model,
-                tools: inputs.tools || [],
-                fileIds: inputs.fileIds || [],
-                metadata: inputs.metadata || {},
-                temperature: inputs.temperature,
-                topP: inputs.topP,
-                responseFormat: inputs.responseFormat,
-            },
-        };
     }
 
     private mapAssistantToOutputs(assistant: any) {
@@ -395,5 +411,118 @@ export class AssistantResource implements OpenAIResource {
             topP: assistant.top_p,
             responseFormat: assistant.response_format,
         };
+    }
+
+    /**
+     * Check for drift between the actual resource and the desired state
+     */
+    protected checkForDrift(actual: any, desired: any): void {
+        debugLog("AssistantResource", "Checking for drift between actual and desired state");
+        
+        // Check for name drift
+        if (actual.name !== desired.name) {
+            debugLog("AssistantResource", `Name drift detected: ${actual.name} (actual) vs ${desired.name} (desired)`);
+            console.warn(`WARNING: Assistant name has drifted: ${actual.name} (actual) vs ${desired.name} (desired)`);
+        }
+        
+        // Check for model drift
+        if (actual.model !== desired.model) {
+            debugLog("AssistantResource", `Model drift detected: ${actual.model} (actual) vs ${desired.model} (desired)`);
+            console.warn(`WARNING: Assistant model has drifted: ${actual.model} (actual) vs ${desired.model} (desired)`);
+        }
+        
+        // Check for instructions drift
+        if (actual.instructions !== desired.instructions) {
+            debugLog("AssistantResource", `Instructions drift detected`);
+            console.warn(`WARNING: Assistant instructions have drifted`);
+        }
+        
+        // Check for metadata drift
+        if (actual.metadata && desired.metadata) {
+            const actualMetadataKeys = Object.keys(actual.metadata);
+            const desiredMetadataKeys = Object.keys(desired.metadata);
+            
+            // Check for missing keys
+            for (const key of actualMetadataKeys) {
+                if (!desiredMetadataKeys.includes(key)) {
+                    debugLog("AssistantResource", `Metadata key drift detected: ${key} exists in actual but not in desired`);
+                    console.warn(`WARNING: Assistant metadata key '${key}' exists in actual resource but not in desired state`);
+                }
+            }
+            
+            // Check for added keys
+            for (const key of desiredMetadataKeys) {
+                if (!actualMetadataKeys.includes(key)) {
+                    debugLog("AssistantResource", `Metadata key drift detected: ${key} exists in desired but not in actual`);
+                    console.warn(`WARNING: Assistant metadata key '${key}' exists in desired state but not in actual resource`);
+                }
+            }
+            
+            // Check for value changes
+            for (const key of actualMetadataKeys) {
+                if (desiredMetadataKeys.includes(key) && actual.metadata[key] !== desired.metadata[key]) {
+                    debugLog("AssistantResource", `Metadata value drift detected for key ${key}: ${actual.metadata[key]} (actual) vs ${desired.metadata[key]} (desired)`);
+                    console.warn(`WARNING: Assistant metadata value for '${key}' has drifted: ${actual.metadata[key]} (actual) vs ${desired.metadata[key]} (desired)`);
+                }
+            }
+        }
+        
+        // Check for tools drift
+        if (actual.tools && desired.tools) {
+            if (actual.tools.length !== desired.tools.length) {
+                debugLog("AssistantResource", `Tools count drift detected: ${actual.tools.length} (actual) vs ${desired.tools.length} (desired)`);
+                console.warn(`WARNING: Assistant tools count has drifted: ${actual.tools.length} (actual) vs ${desired.tools.length} (desired)`);
+            } else {
+                // Check if all tool types match
+                const actualToolTypes = actual.tools.map((tool: any) => tool.type);
+                const desiredToolTypes = desired.tools.map((tool: any) => tool.type);
+                
+                for (let i = 0; i < actualToolTypes.length; i++) {
+                    if (actualToolTypes[i] !== desiredToolTypes[i]) {
+                        debugLog("AssistantResource", `Tool type drift detected at index ${i}: ${actualToolTypes[i]} (actual) vs ${desiredToolTypes[i]} (desired)`);
+                        console.warn(`WARNING: Assistant tool type has drifted at index ${i}: ${actualToolTypes[i]} (actual) vs ${desiredToolTypes[i]} (desired)`);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if a resource with the same name already exists
+     */
+    protected async checkForExistingResource(inputs: any): Promise<void> {
+        if (!inputs.name) {
+            return;
+        }
+        
+        try {
+            debugLog("AssistantResource", `Checking if an assistant with name '${inputs.name}' already exists`);
+            
+            // Get the client with the provided API key
+            const defaultClient = new OpenAI();
+            const resourceClient = this.getClient(defaultClient, inputs);
+            
+            // List assistants to check if one with the same name exists
+            const response = await resourceClient.beta.assistants.list();
+            
+            if (response.data) {
+                const existingAssistant = response.data.find(assistant => assistant.name === inputs.name);
+                
+                if (existingAssistant) {
+                    debugLog("AssistantResource", `Found existing assistant with name '${inputs.name}' and ID '${existingAssistant.id}'`);
+                    console.warn(`WARNING: An assistant with name '${inputs.name}' already exists (ID: ${existingAssistant.id}). Creating a new resource will result in a duplicate.`);
+                } else {
+                    debugLog("AssistantResource", `No existing assistant found with name '${inputs.name}'`);
+                }
+            }
+        } catch (error: any) {
+            // If we get an authentication error, the API key is invalid
+            if (error.status === 401) {
+                throw new Error(`Invalid API key: ${error.message}`);
+            }
+            
+            // For other errors, log and continue
+            debugLog("AssistantResource", `Error checking for existing assistant: ${error}`);
+        }
     }
 } 

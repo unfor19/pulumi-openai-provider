@@ -38,6 +38,11 @@ export interface VectorStoreArgs {
      * Chunking strategy for the vector store
      */
     chunkingStrategy?: pulumi.Input<any>;
+
+    /**
+     * Optional OpenAI API key to use for this specific resource
+     */
+    apiKey?: pulumi.Input<string>;
 }
 
 /**
@@ -126,6 +131,11 @@ export class VectorStore extends pulumi.CustomResource {
      * Number of cancelled files in the vector store
      */
     public readonly fileCountCancelled!: pulumi.Output<number>;
+
+    /**
+     * Optional OpenAI API key to use for this specific resource
+     */
+    public readonly apiKey?: pulumi.Output<string | undefined>;
 
     constructor(name: string, args: VectorStoreArgs, opts?: pulumi.CustomResourceOptions) {
         super("openai:index:VectorStore", name, {

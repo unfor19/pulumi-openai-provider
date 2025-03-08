@@ -80,6 +80,11 @@ export interface AssistantArgs {
      * The format of the assistant's responses
      */
     responseFormat?: pulumi.Input<AssistantCreateParams['response_format']>;
+
+    /**
+     * Optional OpenAI API key to use for this specific resource
+     */
+    apiKey?: pulumi.Input<string>;
 }
 
 /**
@@ -151,6 +156,11 @@ export class Assistant extends pulumi.CustomResource {
      * The format of the assistant's responses
      */
     public readonly responseFormat!: pulumi.Output<AssistantCreateParams['response_format'] | undefined>;
+
+    /**
+     * Optional OpenAI API key to use for this specific resource
+     */
+    public readonly apiKey?: pulumi.Output<string | undefined>;
 
     constructor(name: string, args: AssistantArgs, opts?: pulumi.CustomResourceOptions) {
         super("openai:index:Assistant", name, {

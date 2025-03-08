@@ -32,6 +32,10 @@ export class VectorStore extends pulumi.CustomResource {
     }
 
     /**
+     * Optional OpenAI API key used for this specific resource.
+     */
+    public readonly apiKey!: pulumi.Output<string | undefined>;
+    /**
      * The Unix timestamp (in seconds) for when the vector store was created.
      */
     public /*out*/ readonly createdAt!: pulumi.Output<number>;
@@ -43,6 +47,10 @@ export class VectorStore extends pulumi.CustomResource {
      * The Unix timestamp (in seconds) for when the vector store will expire.
      */
     public /*out*/ readonly expiresAt!: pulumi.Output<number | undefined>;
+    /**
+     * The number of cancelled files in this vector store.
+     */
+    public /*out*/ readonly fileCountCancelled!: pulumi.Output<number | undefined>;
     /**
      * Counts of files in the vector store by status.
      */
@@ -94,6 +102,7 @@ export class VectorStore extends pulumi.CustomResource {
             if ((!args || args.name === undefined) && !opts.urn) {
                 throw new Error("Missing required property 'name'");
             }
+            resourceInputs["apiKey"] = args?.apiKey ? pulumi.secret(args.apiKey) : undefined;
             resourceInputs["chunkingStrategy"] = args ? args.chunkingStrategy : undefined;
             resourceInputs["expiresAfter"] = args ? args.expiresAfter : undefined;
             resourceInputs["fileIds"] = args ? args.fileIds : undefined;
@@ -101,6 +110,7 @@ export class VectorStore extends pulumi.CustomResource {
             resourceInputs["name"] = args ? args.name : undefined;
             resourceInputs["createdAt"] = undefined /*out*/;
             resourceInputs["expiresAt"] = undefined /*out*/;
+            resourceInputs["fileCountCancelled"] = undefined /*out*/;
             resourceInputs["fileCounts"] = undefined /*out*/;
             resourceInputs["id"] = undefined /*out*/;
             resourceInputs["lastActiveAt"] = undefined /*out*/;
@@ -108,9 +118,11 @@ export class VectorStore extends pulumi.CustomResource {
             resourceInputs["status"] = undefined /*out*/;
             resourceInputs["usageBytes"] = undefined /*out*/;
         } else {
+            resourceInputs["apiKey"] = undefined /*out*/;
             resourceInputs["createdAt"] = undefined /*out*/;
             resourceInputs["expiresAfter"] = undefined /*out*/;
             resourceInputs["expiresAt"] = undefined /*out*/;
+            resourceInputs["fileCountCancelled"] = undefined /*out*/;
             resourceInputs["fileCounts"] = undefined /*out*/;
             resourceInputs["fileIds"] = undefined /*out*/;
             resourceInputs["id"] = undefined /*out*/;
@@ -122,6 +134,8 @@ export class VectorStore extends pulumi.CustomResource {
             resourceInputs["usageBytes"] = undefined /*out*/;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
+        const secretOpts = { additionalSecretOutputs: ["apiKey"] };
+        opts = pulumi.mergeOptions(opts, secretOpts);
         super(VectorStore.__pulumiType, name, resourceInputs, opts);
     }
 }
@@ -130,6 +144,10 @@ export class VectorStore extends pulumi.CustomResource {
  * The set of arguments for constructing a VectorStore resource.
  */
 export interface VectorStoreArgs {
+    /**
+     * Optional OpenAI API key to use for this specific resource.
+     */
+    apiKey?: pulumi.Input<string>;
     /**
      * The chunking strategy used to chunk files.
      */

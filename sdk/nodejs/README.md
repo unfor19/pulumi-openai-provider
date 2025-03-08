@@ -7,6 +7,7 @@ This repo contains a Pulumi provider for managing OpenAI resources. The provider
 - Manage OpenAI Assistants with full CRUD operations
 - Authentication using OpenAI API keys
 - Support for all Assistant properties including tools, file attachments, and metadata
+- Per-resource API key support allowing different resources to use different API keys
 
 ## Background
 This repository is based on the [guide for authoring and publishing a Pulumi Package](https://www.pulumi.com/docs/guides/pulumi-packages/how-to-author).
@@ -131,15 +132,71 @@ This will create tarballs in the `dist` directory for Linux, macOS, and Windows.
 
 ## Configuration
 
-The provider requires an OpenAI API key for authentication. You can provide this in one of two ways:
+The provider requires an OpenAI API key for authentication. You can provide this in one of three ways:
 
-1. Set the `OPENAI_API_KEY` environment variable
-2. Configure it in your Pulumi stack:
+1. Set the `OPENAI_API_KEY` environment variable (global for all resources)
+2. Configure it in your Pulumi stack (global for all resources):
 
 ```typescript
 const config = new pulumi.Config("openai");
 const apiKey = config.requireSecret("apiKey");
 ```
+
+3. Specify a per-resource API key (overrides the global key):
+
+```typescript
+// Create a resource with a specific API key
+const assistant = new openai.Assistant("my-assistant", {
+    name: "My Assistant",
+    model: "gpt-4o",
+    instructions: "You are a helpful assistant.",
+    // Use a specific API key for this resource
+    apiKey: "sk-resource-specific-key"
+});
+```
+
+### Per-Resource API Key Support
+
+The provider supports using different API keys for different resources, which enables several advanced scenarios:
+
+- **Multi-Account Management**: Manage resources across multiple OpenAI accounts from a single Pulumi program
+- **Billing Isolation**: Separate billing for different projects, departments, or clients
+- **Access Control**: Implement fine-grained access control by using different API keys with different permissions
+- **Environment Separation**: Use different API keys for development, staging, and production environments
+
+During preview and update operations, the provider validates each resource's API key to ensure it's valid and has the necessary permissions. This helps catch authentication issues early in the deployment process.
+
+Example of using different API keys for different resources:
+
+```typescript
+// Get API keys from environment variables or other secure sources
+const teamAKey = process.env.TEAM_A_API_KEY || "";
+const teamBKey = process.env.TEAM_B_API_KEY || "";
+
+// Create resources for Team A
+const teamAAssistant = new openai.Assistant("team-a-assistant", {
+    name: "Team A Assistant",
+    model: "gpt-4o",
+    instructions: "You are Team A's assistant.",
+    apiKey: teamAKey,
+});
+
+// Create resources for Team B
+const teamBAssistant = new openai.Assistant("team-b-assistant", {
+    name: "Team B Assistant",
+    model: "gpt-4o",
+    instructions: "You are Team B's assistant.",
+    apiKey: teamBKey,
+});
+```
+
+For debugging API key issues, you can enable debug logging by setting the `PULUMI_OPENAI_DEBUG` environment variable:
+
+```bash
+PULUMI_OPENAI_DEBUG=1 pulumi preview
+```
+
+This will output detailed logs about API key handling and authentication attempts during the preview and update processes.
 
 ## Example Usage
 

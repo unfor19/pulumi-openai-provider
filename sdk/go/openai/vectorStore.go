@@ -15,12 +15,16 @@ import (
 type VectorStore struct {
 	pulumi.CustomResourceState
 
+	// Optional OpenAI API key used for this specific resource.
+	ApiKey pulumi.StringPtrOutput `pulumi:"apiKey"`
 	// The Unix timestamp (in seconds) for when the vector store was created.
 	CreatedAt pulumi.Float64Output `pulumi:"createdAt"`
 	// The expiration policy for the vector store.
 	ExpiresAfter pulumi.StringMapOutput `pulumi:"expiresAfter"`
 	// The Unix timestamp (in seconds) for when the vector store will expire.
 	ExpiresAt pulumi.Float64PtrOutput `pulumi:"expiresAt"`
+	// The number of cancelled files in this vector store.
+	FileCountCancelled pulumi.Float64PtrOutput `pulumi:"fileCountCancelled"`
 	// Counts of files in the vector store by status.
 	FileCounts pulumi.StringMapOutput `pulumi:"fileCounts"`
 	// A list of file IDs used in the vector store.
@@ -51,6 +55,13 @@ func NewVectorStore(ctx *pulumi.Context,
 	if args.Name == nil {
 		return nil, errors.New("invalid value for required argument 'Name'")
 	}
+	if args.ApiKey != nil {
+		args.ApiKey = pulumi.ToSecret(args.ApiKey).(pulumi.StringPtrInput)
+	}
+	secrets := pulumi.AdditionalSecretOutputs([]string{
+		"apiKey",
+	})
+	opts = append(opts, secrets)
 	opts = internal.PkgResourceDefaultOpts(opts)
 	var resource VectorStore
 	err := ctx.RegisterResource("openai:index:VectorStore", name, args, &resource, opts...)
@@ -84,6 +95,8 @@ func (VectorStoreState) ElementType() reflect.Type {
 }
 
 type vectorStoreArgs struct {
+	// Optional OpenAI API key to use for this specific resource.
+	ApiKey *string `pulumi:"apiKey"`
 	// The chunking strategy used to chunk files.
 	ChunkingStrategy map[string]string `pulumi:"chunkingStrategy"`
 	// The expiration policy for the vector store.
@@ -98,6 +111,8 @@ type vectorStoreArgs struct {
 
 // The set of arguments for constructing a VectorStore resource.
 type VectorStoreArgs struct {
+	// Optional OpenAI API key to use for this specific resource.
+	ApiKey pulumi.StringPtrInput
 	// The chunking strategy used to chunk files.
 	ChunkingStrategy pulumi.StringMapInput
 	// The expiration policy for the vector store.
@@ -197,6 +212,11 @@ func (o VectorStoreOutput) ToVectorStoreOutputWithContext(ctx context.Context) V
 	return o
 }
 
+// Optional OpenAI API key used for this specific resource.
+func (o VectorStoreOutput) ApiKey() pulumi.StringPtrOutput {
+	return o.ApplyT(func(v *VectorStore) pulumi.StringPtrOutput { return v.ApiKey }).(pulumi.StringPtrOutput)
+}
+
 // The Unix timestamp (in seconds) for when the vector store was created.
 func (o VectorStoreOutput) CreatedAt() pulumi.Float64Output {
 	return o.ApplyT(func(v *VectorStore) pulumi.Float64Output { return v.CreatedAt }).(pulumi.Float64Output)
@@ -210,6 +230,11 @@ func (o VectorStoreOutput) ExpiresAfter() pulumi.StringMapOutput {
 // The Unix timestamp (in seconds) for when the vector store will expire.
 func (o VectorStoreOutput) ExpiresAt() pulumi.Float64PtrOutput {
 	return o.ApplyT(func(v *VectorStore) pulumi.Float64PtrOutput { return v.ExpiresAt }).(pulumi.Float64PtrOutput)
+}
+
+// The number of cancelled files in this vector store.
+func (o VectorStoreOutput) FileCountCancelled() pulumi.Float64PtrOutput {
+	return o.ApplyT(func(v *VectorStore) pulumi.Float64PtrOutput { return v.FileCountCancelled }).(pulumi.Float64PtrOutput)
 }
 
 // Counts of files in the vector store by status.

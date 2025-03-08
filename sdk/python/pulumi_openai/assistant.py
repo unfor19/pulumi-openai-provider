@@ -21,6 +21,7 @@ class AssistantArgs:
     def __init__(__self__, *,
                  model: pulumi.Input[str],
                  name: pulumi.Input[str],
+                 api_key: Optional[pulumi.Input[str]] = None,
                  file_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  instructions: Optional[pulumi.Input[str]] = None,
                  metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
@@ -33,6 +34,7 @@ class AssistantArgs:
         The set of arguments for constructing a Assistant resource.
         :param pulumi.Input[str] model: The model that the assistant will use (e.g., gpt-4, gpt-3.5-turbo).
         :param pulumi.Input[str] name: The name of the assistant.
+        :param pulumi.Input[str] api_key: Optional OpenAI API key to use for this specific resource.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] file_ids: A list of file IDs attached to this assistant.
         :param pulumi.Input[str] instructions: The system instructions that the assistant uses.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the assistant.
@@ -44,6 +46,8 @@ class AssistantArgs:
         """
         pulumi.set(__self__, "model", model)
         pulumi.set(__self__, "name", name)
+        if api_key is not None:
+            pulumi.set(__self__, "api_key", api_key)
         if file_ids is not None:
             pulumi.set(__self__, "file_ids", file_ids)
         if instructions is not None:
@@ -84,6 +88,18 @@ class AssistantArgs:
     @name.setter
     def name(self, value: pulumi.Input[str]):
         pulumi.set(self, "name", value)
+
+    @property
+    @pulumi.getter(name="apiKey")
+    def api_key(self) -> Optional[pulumi.Input[str]]:
+        """
+        Optional OpenAI API key to use for this specific resource.
+        """
+        return pulumi.get(self, "api_key")
+
+    @api_key.setter
+    def api_key(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "api_key", value)
 
     @property
     @pulumi.getter(name="fileIds")
@@ -187,6 +203,7 @@ class Assistant(pulumi.CustomResource):
     def __init__(__self__,
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
+                 api_key: Optional[pulumi.Input[str]] = None,
                  file_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  instructions: Optional[pulumi.Input[str]] = None,
                  metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
@@ -202,6 +219,7 @@ class Assistant(pulumi.CustomResource):
         Create a Assistant resource with the given unique name, props, and options.
         :param str resource_name: The name of the resource.
         :param pulumi.ResourceOptions opts: Options for the resource.
+        :param pulumi.Input[str] api_key: Optional OpenAI API key to use for this specific resource.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] file_ids: A list of file IDs attached to this assistant.
         :param pulumi.Input[str] instructions: The system instructions that the assistant uses.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the assistant.
@@ -236,6 +254,7 @@ class Assistant(pulumi.CustomResource):
     def _internal_init(__self__,
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
+                 api_key: Optional[pulumi.Input[str]] = None,
                  file_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  instructions: Optional[pulumi.Input[str]] = None,
                  metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
@@ -255,6 +274,7 @@ class Assistant(pulumi.CustomResource):
                 raise TypeError('__props__ is only valid when passed in combination with a valid opts.id to get an existing resource')
             __props__ = AssistantArgs.__new__(AssistantArgs)
 
+            __props__.__dict__["api_key"] = None if api_key is None else pulumi.Output.secret(api_key)
             __props__.__dict__["file_ids"] = file_ids
             __props__.__dict__["instructions"] = instructions
             __props__.__dict__["metadata"] = metadata
@@ -272,6 +292,8 @@ class Assistant(pulumi.CustomResource):
             __props__.__dict__["created_at"] = None
             __props__.__dict__["id"] = None
             __props__.__dict__["object"] = None
+        secret_opts = pulumi.ResourceOptions(additional_secret_outputs=["apiKey"])
+        opts = pulumi.ResourceOptions.merge(opts, secret_opts)
         super(Assistant, __self__).__init__(
             'openai:index:Assistant',
             resource_name,
@@ -294,6 +316,7 @@ class Assistant(pulumi.CustomResource):
 
         __props__ = AssistantArgs.__new__(AssistantArgs)
 
+        __props__.__dict__["api_key"] = None
         __props__.__dict__["created_at"] = None
         __props__.__dict__["file_ids"] = None
         __props__.__dict__["id"] = None
@@ -308,6 +331,14 @@ class Assistant(pulumi.CustomResource):
         __props__.__dict__["tools"] = None
         __props__.__dict__["top_p"] = None
         return Assistant(resource_name, opts=opts, __props__=__props__)
+
+    @property
+    @pulumi.getter(name="apiKey")
+    def api_key(self) -> pulumi.Output[Optional[str]]:
+        """
+        Optional OpenAI API key used for this specific resource.
+        """
+        return pulumi.get(self, "api_key")
 
     @property
     @pulumi.getter(name="createdAt")

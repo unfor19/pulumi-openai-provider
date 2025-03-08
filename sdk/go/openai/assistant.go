@@ -15,6 +15,8 @@ import (
 type Assistant struct {
 	pulumi.CustomResourceState
 
+	// Optional OpenAI API key used for this specific resource.
+	ApiKey pulumi.StringPtrOutput `pulumi:"apiKey"`
 	// The Unix timestamp (in seconds) for when the assistant was created.
 	CreatedAt pulumi.Float64Output `pulumi:"createdAt"`
 	// A list of file IDs attached to this assistant.
@@ -56,6 +58,13 @@ func NewAssistant(ctx *pulumi.Context,
 	if args.Name == nil {
 		return nil, errors.New("invalid value for required argument 'Name'")
 	}
+	if args.ApiKey != nil {
+		args.ApiKey = pulumi.ToSecret(args.ApiKey).(pulumi.StringPtrInput)
+	}
+	secrets := pulumi.AdditionalSecretOutputs([]string{
+		"apiKey",
+	})
+	opts = append(opts, secrets)
 	opts = internal.PkgResourceDefaultOpts(opts)
 	var resource Assistant
 	err := ctx.RegisterResource("openai:index:Assistant", name, args, &resource, opts...)
@@ -89,6 +98,8 @@ func (AssistantState) ElementType() reflect.Type {
 }
 
 type assistantArgs struct {
+	// Optional OpenAI API key to use for this specific resource.
+	ApiKey *string `pulumi:"apiKey"`
 	// A list of file IDs attached to this assistant.
 	FileIds []string `pulumi:"fileIds"`
 	// The system instructions that the assistant uses.
@@ -113,6 +124,8 @@ type assistantArgs struct {
 
 // The set of arguments for constructing a Assistant resource.
 type AssistantArgs struct {
+	// Optional OpenAI API key to use for this specific resource.
+	ApiKey pulumi.StringPtrInput
 	// A list of file IDs attached to this assistant.
 	FileIds pulumi.StringArrayInput
 	// The system instructions that the assistant uses.
@@ -220,6 +233,11 @@ func (o AssistantOutput) ToAssistantOutput() AssistantOutput {
 
 func (o AssistantOutput) ToAssistantOutputWithContext(ctx context.Context) AssistantOutput {
 	return o
+}
+
+// Optional OpenAI API key used for this specific resource.
+func (o AssistantOutput) ApiKey() pulumi.StringPtrOutput {
+	return o.ApplyT(func(v *Assistant) pulumi.StringPtrOutput { return v.ApiKey }).(pulumi.StringPtrOutput)
 }
 
 // The Unix timestamp (in seconds) for when the assistant was created.
