@@ -7,11 +7,11 @@ const sharedMetadata = {
 
 // Get the second API key from environment variable
 // This will be used specifically for the Vector Store
-const vectorStoreApiKey = "invalid-key"; // process.env.OPENAI_API_KEY;
+// const vectorStoreApiKey = "invalid-key"; // process.env.OPENAI_API_KEY;
 
 // Create an OpenAI Vector Store with a specific API key
 const vectorStore = new VectorStore("test-vector-store", {
-    name: "Test Vector Store Updated",
+    name: "Test Vector Store",
     metadata: sharedMetadata,
     
     // Optional: Set an expiration policy for the vector store
@@ -26,7 +26,7 @@ const vectorStore = new VectorStore("test-vector-store", {
     // }
     
     // Use an invalid API key to test our enhanced preview functionality
-    apiKey: vectorStoreApiKey,
+    // apiKey: vectorStoreApiKey,
 });
 
 // Create an OpenAI Assistant
@@ -34,7 +34,7 @@ const vectorStore = new VectorStore("test-vector-store", {
 const assistant = new Assistant("test-assistant", {
     name: "Test Assistant",
     model: "gpt-4-turbo-preview",
-    instructions: "You are a helpful assistant that specializes in testing Pulumi providers.",
+    instructions: "You are a helpful",
     tools: [{ type: "code_interpreter" }, { type: "file_search" }],
     metadata: sharedMetadata,
     // Use toolResources with the flattened structure that the SDK expects

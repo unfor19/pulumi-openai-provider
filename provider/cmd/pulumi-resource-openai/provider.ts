@@ -189,8 +189,23 @@ export class Provider implements provider.Provider {
             
             debugLog("PROVIDER", `Resource read successfully: ${id}`);
             return result;
-        } catch (error) {
+        } catch (error: any) {
             debugLog("PROVIDER", `Error reading resource: ${error}`);
+            
+            // Special case for delete operations
+            const stack = new Error().stack || '';
+            const isDeleteOperation = stack.includes('delete(');
+            
+            // If we're in a delete operation and the resource is not found (404),
+            // return a minimal state to allow deletion to proceed
+            if (isDeleteOperation && error.status === 404) {
+                debugLog("PROVIDER", `Resource ${id} not found during delete operation, returning minimal state`);
+                return {
+                    id,
+                    props: { id }
+                };
+            }
+            
             throw error;
         }
     }
@@ -230,7 +245,15 @@ export class Provider implements provider.Provider {
             
             await handler.delete(resourceClient, id);
             debugLog("PROVIDER", `Resource deleted successfully: ${id}`);
-        } catch (error) {
+        } catch (error: any) {
+            // If the resource is not found (404), consider it already deleted and continue
+            // This allows pulumi destroy to complete even if resources are not found
+            if (error.status === 404) {
+                debugLog("PROVIDER", `Resource ${id} not found, considering it already deleted`);
+                return; // Continue with destroy operation
+            }
+            
+            // For other errors, log and throw
             debugLog("PROVIDER", `Error deleting resource: ${error}`);
             throw error;
         }
