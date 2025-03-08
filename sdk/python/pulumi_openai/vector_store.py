@@ -20,6 +20,7 @@ __all__ = ['VectorStoreArgs', 'VectorStore']
 class VectorStoreArgs:
     def __init__(__self__, *,
                  name: pulumi.Input[str],
+                 api_key: Optional[pulumi.Input[str]] = None,
                  chunking_strategy: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  expires_after: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  file_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
@@ -27,12 +28,15 @@ class VectorStoreArgs:
         """
         The set of arguments for constructing a VectorStore resource.
         :param pulumi.Input[str] name: The name of the vector store.
+        :param pulumi.Input[str] api_key: Optional OpenAI API key to use for this specific resource.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] chunking_strategy: The chunking strategy used to chunk files.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] expires_after: The expiration policy for the vector store.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] file_ids: A list of file IDs to be used in the vector store.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the vector store.
         """
         pulumi.set(__self__, "name", name)
+        if api_key is not None:
+            pulumi.set(__self__, "api_key", api_key)
         if chunking_strategy is not None:
             pulumi.set(__self__, "chunking_strategy", chunking_strategy)
         if expires_after is not None:
@@ -53,6 +57,18 @@ class VectorStoreArgs:
     @name.setter
     def name(self, value: pulumi.Input[str]):
         pulumi.set(self, "name", value)
+
+    @property
+    @pulumi.getter(name="apiKey")
+    def api_key(self) -> Optional[pulumi.Input[str]]:
+        """
+        Optional OpenAI API key to use for this specific resource.
+        """
+        return pulumi.get(self, "api_key")
+
+    @api_key.setter
+    def api_key(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "api_key", value)
 
     @property
     @pulumi.getter(name="chunkingStrategy")
@@ -108,6 +124,7 @@ class VectorStore(pulumi.CustomResource):
     def __init__(__self__,
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
+                 api_key: Optional[pulumi.Input[str]] = None,
                  chunking_strategy: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  expires_after: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  file_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
@@ -118,6 +135,7 @@ class VectorStore(pulumi.CustomResource):
         Create a VectorStore resource with the given unique name, props, and options.
         :param str resource_name: The name of the resource.
         :param pulumi.ResourceOptions opts: Options for the resource.
+        :param pulumi.Input[str] api_key: Optional OpenAI API key to use for this specific resource.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] chunking_strategy: The chunking strategy used to chunk files.
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] expires_after: The expiration policy for the vector store.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] file_ids: A list of file IDs to be used in the vector store.
@@ -147,6 +165,7 @@ class VectorStore(pulumi.CustomResource):
     def _internal_init(__self__,
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
+                 api_key: Optional[pulumi.Input[str]] = None,
                  chunking_strategy: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  expires_after: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  file_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
@@ -161,6 +180,7 @@ class VectorStore(pulumi.CustomResource):
                 raise TypeError('__props__ is only valid when passed in combination with a valid opts.id to get an existing resource')
             __props__ = VectorStoreArgs.__new__(VectorStoreArgs)
 
+            __props__.__dict__["api_key"] = None if api_key is None else pulumi.Output.secret(api_key)
             __props__.__dict__["chunking_strategy"] = chunking_strategy
             __props__.__dict__["expires_after"] = expires_after
             __props__.__dict__["file_ids"] = file_ids
@@ -170,12 +190,15 @@ class VectorStore(pulumi.CustomResource):
             __props__.__dict__["name"] = name
             __props__.__dict__["created_at"] = None
             __props__.__dict__["expires_at"] = None
+            __props__.__dict__["file_count_cancelled"] = None
             __props__.__dict__["file_counts"] = None
             __props__.__dict__["id"] = None
             __props__.__dict__["last_active_at"] = None
             __props__.__dict__["object"] = None
             __props__.__dict__["status"] = None
             __props__.__dict__["usage_bytes"] = None
+        secret_opts = pulumi.ResourceOptions(additional_secret_outputs=["apiKey"])
+        opts = pulumi.ResourceOptions.merge(opts, secret_opts)
         super(VectorStore, __self__).__init__(
             'openai:index:VectorStore',
             resource_name,
@@ -198,9 +221,11 @@ class VectorStore(pulumi.CustomResource):
 
         __props__ = VectorStoreArgs.__new__(VectorStoreArgs)
 
+        __props__.__dict__["api_key"] = None
         __props__.__dict__["created_at"] = None
         __props__.__dict__["expires_after"] = None
         __props__.__dict__["expires_at"] = None
+        __props__.__dict__["file_count_cancelled"] = None
         __props__.__dict__["file_counts"] = None
         __props__.__dict__["file_ids"] = None
         __props__.__dict__["id"] = None
@@ -211,6 +236,14 @@ class VectorStore(pulumi.CustomResource):
         __props__.__dict__["status"] = None
         __props__.__dict__["usage_bytes"] = None
         return VectorStore(resource_name, opts=opts, __props__=__props__)
+
+    @property
+    @pulumi.getter(name="apiKey")
+    def api_key(self) -> pulumi.Output[Optional[str]]:
+        """
+        Optional OpenAI API key used for this specific resource.
+        """
+        return pulumi.get(self, "api_key")
 
     @property
     @pulumi.getter(name="createdAt")
@@ -235,6 +268,14 @@ class VectorStore(pulumi.CustomResource):
         The Unix timestamp (in seconds) for when the vector store will expire.
         """
         return pulumi.get(self, "expires_at")
+
+    @property
+    @pulumi.getter(name="fileCountCancelled")
+    def file_count_cancelled(self) -> pulumi.Output[Optional[float]]:
+        """
+        The number of cancelled files in this vector store.
+        """
+        return pulumi.get(self, "file_count_cancelled")
 
     @property
     @pulumi.getter(name="fileCounts")

@@ -13,6 +13,12 @@ namespace Pulumi.Openai
     public partial class VectorStore : global::Pulumi.CustomResource
     {
         /// <summary>
+        /// Optional OpenAI API key used for this specific resource.
+        /// </summary>
+        [Output("apiKey")]
+        public Output<string?> ApiKey { get; private set; } = null!;
+
+        /// <summary>
         /// The Unix timestamp (in seconds) for when the vector store was created.
         /// </summary>
         [Output("createdAt")]
@@ -29,6 +35,12 @@ namespace Pulumi.Openai
         /// </summary>
         [Output("expiresAt")]
         public Output<double?> ExpiresAt { get; private set; } = null!;
+
+        /// <summary>
+        /// The number of cancelled files in this vector store.
+        /// </summary>
+        [Output("fileCountCancelled")]
+        public Output<double?> FileCountCancelled { get; private set; } = null!;
 
         /// <summary>
         /// Counts of files in the vector store by status.
@@ -107,6 +119,10 @@ namespace Pulumi.Openai
             var defaultOptions = new CustomResourceOptions
             {
                 Version = Utilities.Version,
+                AdditionalSecretOutputs =
+                {
+                    "apiKey",
+                },
             };
             var merged = CustomResourceOptions.Merge(defaultOptions, options);
             // Override the ID if one was specified for consistency with other language SDKs.
@@ -129,6 +145,22 @@ namespace Pulumi.Openai
 
     public sealed class VectorStoreArgs : global::Pulumi.ResourceArgs
     {
+        [Input("apiKey")]
+        private Input<string>? _apiKey;
+
+        /// <summary>
+        /// Optional OpenAI API key to use for this specific resource.
+        /// </summary>
+        public Input<string>? ApiKey
+        {
+            get => _apiKey;
+            set
+            {
+                var emptySecret = Output.CreateSecret(0);
+                _apiKey = Output.Tuple<Input<string>?, int>(value, emptySecret).Apply(t => t.Item1);
+            }
+        }
+
         [Input("chunkingStrategy")]
         private InputMap<string>? _chunkingStrategy;
 

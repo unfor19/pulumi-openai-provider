@@ -107,6 +107,11 @@
                 "responseFormat": {
                     "type": "string",
                     "description": "The format of the response. Can be 'auto' or 'json_object'."
+                },
+                "apiKey": {
+                    "type": "string",
+                    "description": "Optional OpenAI API key to use for this specific resource.",
+                    "secret": true
                 }
             },
             "requiredInputs": [
@@ -206,6 +211,11 @@
                 "responseFormat": {
                     "type": "string",
                     "description": "The format of the response. Can be 'auto' or 'json_object'."
+                },
+                "apiKey": {
+                    "type": "string",
+                    "description": "Optional OpenAI API key used for this specific resource.",
+                    "secret": true
                 }
             },
             "required": [
@@ -255,6 +265,11 @@
                 "chunkingStrategy": {
                     "type": "object",
                     "description": "The chunking strategy used to chunk files."
+                },
+                "apiKey": {
+                    "type": "string",
+                    "description": "Optional OpenAI API key to use for this specific resource.",
+                    "secret": true
                 }
             },
             "requiredInputs": [
@@ -346,6 +361,15 @@
                         }
                     },
                     "description": "Counts of files in the vector store by status."
+                },
+                "fileCountCancelled": {
+                    "type": "number",
+                    "description": "The number of cancelled files in this vector store."
+                },
+                "apiKey": {
+                    "type": "string",
+                    "description": "Optional OpenAI API key used for this specific resource.",
+                    "secret": true
                 }
             },
             "required": [

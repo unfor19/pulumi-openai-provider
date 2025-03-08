@@ -32,6 +32,10 @@ export class Assistant extends pulumi.CustomResource {
     }
 
     /**
+     * Optional OpenAI API key used for this specific resource.
+     */
+    public readonly apiKey!: pulumi.Output<string | undefined>;
+    /**
      * The Unix timestamp (in seconds) for when the assistant was created.
      */
     public /*out*/ readonly createdAt!: pulumi.Output<number>;
@@ -101,6 +105,7 @@ export class Assistant extends pulumi.CustomResource {
             if ((!args || args.name === undefined) && !opts.urn) {
                 throw new Error("Missing required property 'name'");
             }
+            resourceInputs["apiKey"] = args?.apiKey ? pulumi.secret(args.apiKey) : undefined;
             resourceInputs["fileIds"] = args ? args.fileIds : undefined;
             resourceInputs["instructions"] = args ? args.instructions : undefined;
             resourceInputs["metadata"] = args ? args.metadata : undefined;
@@ -115,6 +120,7 @@ export class Assistant extends pulumi.CustomResource {
             resourceInputs["id"] = undefined /*out*/;
             resourceInputs["object"] = undefined /*out*/;
         } else {
+            resourceInputs["apiKey"] = undefined /*out*/;
             resourceInputs["createdAt"] = undefined /*out*/;
             resourceInputs["fileIds"] = undefined /*out*/;
             resourceInputs["id"] = undefined /*out*/;
@@ -130,6 +136,8 @@ export class Assistant extends pulumi.CustomResource {
             resourceInputs["topP"] = undefined /*out*/;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
+        const secretOpts = { additionalSecretOutputs: ["apiKey"] };
+        opts = pulumi.mergeOptions(opts, secretOpts);
         super(Assistant.__pulumiType, name, resourceInputs, opts);
     }
 }
@@ -138,6 +146,10 @@ export class Assistant extends pulumi.CustomResource {
  * The set of arguments for constructing a Assistant resource.
  */
 export interface AssistantArgs {
+    /**
+     * Optional OpenAI API key to use for this specific resource.
+     */
+    apiKey?: pulumi.Input<string>;
     /**
      * A list of file IDs attached to this assistant.
      */

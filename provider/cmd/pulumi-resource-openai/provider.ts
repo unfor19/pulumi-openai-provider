@@ -42,25 +42,31 @@ export class Provider implements provider.Provider {
         // In preview mode, return a placeholder state
         if (pulumi.runtime.isDryRun()) {
             debugLog("PROVIDER", `Preview mode detected, returning placeholder state for ${name}`);
-            const previewResult = handler.preview(inputs);
-            debugLog("PROVIDER", `Preview result: ${JSON.stringify(previewResult)}`);
-            
-            // Ensure the ID is properly set in the output
-            const state = previewResult.outs || inputs;
-            if (!state.id && previewResult.id) {
-                state.id = previewResult.id;
+            try {
+                const previewResult = await handler.preview(inputs);
+                debugLog("PROVIDER", `Preview result: ${JSON.stringify(previewResult)}`);
+                
+                // Ensure the ID is properly set in the output
+                const state = previewResult.outs || inputs;
+                if (!state.id && previewResult.id) {
+                    state.id = previewResult.id;
+                }
+                
+                return {
+                    urn,
+                    state,
+                };
+            } catch (error) {
+                debugLog("PROVIDER", `Error in preview: ${error}`);
+                throw error;
             }
-            
-            return {
-                urn,
-                state,
-            };
         }
 
         // Create the resource
         try {
             debugLog("PROVIDER", `Creating resource: ${name}`);
-            const result = await handler.create(this.openaiClient, inputs);
+            const resourceClient = handler.getClient(this.openaiClient, inputs);
+            const result = await handler.create(resourceClient, inputs);
             debugLog("PROVIDER", `Resource created successfully: ${result.id}`);
             return {
                 urn,
@@ -72,20 +78,76 @@ export class Provider implements provider.Provider {
         }
     }
 
+    async invoke(token: string, inputs: any): Promise<provider.InvokeResult> {
+        debugLog("PROVIDER", `Invoke called with token: ${token}`);
+        debugLog("PROVIDER", `Inputs: ${JSON.stringify(inputs)}`);
+        
+        // TODO: Implement invocations...
+        throw new Error(`Invoke not implemented for ${token}`);
+    }
+
     async check(urn: pulumi.URN, olds: any, news: any): Promise<provider.CheckResult> {
         debugLog("PROVIDER", `Checking resource: ${urn}`);
-        debugLog("PROVIDER", `Old inputs: ${JSON.stringify(olds)}`);
-        debugLog("PROVIDER", `New inputs: ${JSON.stringify(news)}`);
+        debugLog("PROVIDER", `Olds: ${JSON.stringify(olds)}`);
+        debugLog("PROVIDER", `News: ${JSON.stringify(news)}`);
         
         const resourceType = this.getResourceTypeFromURN(urn);
         const handler = ResourceRegistry.getHandler(resourceType);
         
         try {
+            // This will validate the inputs and return any failures
             const inputs = handler.check(news);
-            debugLog("PROVIDER", `Check completed successfully`);
-            return { inputs };
+            return {
+                inputs,
+            };
         } catch (error) {
-            debugLog("PROVIDER", `Check failed: ${error}`);
+            debugLog("PROVIDER", `Error checking resource: ${error}`);
+            throw error;
+        }
+    }
+
+    async diff(id: pulumi.ID, urn: pulumi.URN, olds: any, news: any): Promise<provider.DiffResult> {
+        debugLog("PROVIDER", `Diffing resource: ${id} (${urn})`);
+        debugLog("PROVIDER", `Olds: ${JSON.stringify(olds)}`);
+        debugLog("PROVIDER", `News: ${JSON.stringify(news)}`);
+        
+        const resourceType = this.getResourceTypeFromURN(urn);
+        const handler = ResourceRegistry.getHandler(resourceType);
+        
+        try {
+            // In preview mode, perform a read operation to validate the API key and detect drift
+            if (pulumi.runtime.isDryRun() && id) {
+                debugLog("PROVIDER", `Preview mode detected, performing read operation for ${id}`);
+                try {
+                    // Get the client with the provided API key
+                    const resourceClient = handler.getClient(this.openaiClient, news);
+                    
+                    // Use the existing read function to validate the API key and detect drift
+                    await handler.read(resourceClient, id);
+                    
+                    // If we get here, the API key is valid and the resource exists
+                    debugLog("PROVIDER", `Successfully read resource with ID: ${id}`);
+                } catch (error: any) {
+                    // If we get an authentication error, the API key is invalid
+                    if (error.status === 401) {
+                        throw new Error(`Invalid API key: ${error.message}`);
+                    }
+                    
+                    // If we get a not found error, the resource doesn't exist (drift)
+                    if (error.status === 404) {
+                        throw new Error(`Resource with ID ${id} not found. This indicates drift between your Pulumi state and the actual resources.`);
+                    }
+                    
+                    // For other errors, log and continue
+                    debugLog("PROVIDER", `Error reading resource: ${error}`);
+                }
+            }
+            
+            const result = handler.diff(olds, news);
+            debugLog("PROVIDER", `Diff result: ${JSON.stringify(result)}`);
+            return result;
+        } catch (error) {
+            debugLog("PROVIDER", `Error diffing resource: ${error}`);
             throw error;
         }
     }
@@ -98,7 +160,8 @@ export class Provider implements provider.Provider {
         const handler = ResourceRegistry.getHandler(resourceType);
         
         try {
-            const result = await handler.create(this.openaiClient, inputs);
+            const resourceClient = handler.getClient(this.openaiClient, inputs);
+            const result = await handler.create(resourceClient, inputs);
             debugLog("PROVIDER", `Resource created successfully: ${result.id}`);
             return result;
         } catch (error) {
@@ -114,25 +177,50 @@ export class Provider implements provider.Provider {
         const handler = ResourceRegistry.getHandler(resourceType);
         
         try {
-            const result = await handler.read(this.openaiClient, id);
+            // For read operations, we need to retrieve the current state first
+            // to get the API key if specified
+            const currentState = await handler.read(this.openaiClient, id);
+            
+            // Now create a client with the possibly resource-specific API key
+            const resourceClient = handler.getClient(this.openaiClient, currentState.props);
+            
+            // And re-read with the appropriate client
+            const result = await handler.read(resourceClient, id);
+            
             debugLog("PROVIDER", `Resource read successfully: ${id}`);
             return result;
-        } catch (error) {
+        } catch (error: any) {
             debugLog("PROVIDER", `Error reading resource: ${error}`);
+            
+            // Special case for delete operations
+            const stack = new Error().stack || '';
+            const isDeleteOperation = stack.includes('delete(');
+            
+            // If we're in a delete operation and the resource is not found (404),
+            // return a minimal state to allow deletion to proceed
+            if (isDeleteOperation && error.status === 404) {
+                debugLog("PROVIDER", `Resource ${id} not found during delete operation, returning minimal state`);
+                return {
+                    id,
+                    props: { id }
+                };
+            }
+            
             throw error;
         }
     }
 
     async update(id: pulumi.ID, urn: pulumi.URN, olds: any, news: any): Promise<provider.UpdateResult> {
         debugLog("PROVIDER", `Updating resource: ${id} (${urn})`);
-        debugLog("PROVIDER", `Old inputs: ${JSON.stringify(olds)}`);
-        debugLog("PROVIDER", `New inputs: ${JSON.stringify(news)}`);
+        debugLog("PROVIDER", `Olds: ${JSON.stringify(olds)}`);
+        debugLog("PROVIDER", `News: ${JSON.stringify(news)}`);
         
         const resourceType = this.getResourceTypeFromURN(urn);
         const handler = ResourceRegistry.getHandler(resourceType);
         
         try {
-            const result = await handler.update(this.openaiClient, id, olds, news);
+            const resourceClient = handler.getClient(this.openaiClient, news);
+            const result = await handler.update(resourceClient, id, olds, news);
             debugLog("PROVIDER", `Resource updated successfully: ${id}`);
             return result;
         } catch (error) {
@@ -148,35 +236,31 @@ export class Provider implements provider.Provider {
         const handler = ResourceRegistry.getHandler(resourceType);
         
         try {
-            await handler.delete(this.openaiClient, id);
+            // For delete operations, we need to retrieve the current state first
+            // to get the API key if specified
+            const currentState = await handler.read(this.openaiClient, id);
+            
+            // Now create a client with the possibly resource-specific API key
+            const resourceClient = handler.getClient(this.openaiClient, currentState.props);
+            
+            await handler.delete(resourceClient, id);
             debugLog("PROVIDER", `Resource deleted successfully: ${id}`);
-        } catch (error) {
+        } catch (error: any) {
+            // If the resource is not found (404), consider it already deleted and continue
+            // This allows pulumi destroy to complete even if resources are not found
+            if (error.status === 404) {
+                debugLog("PROVIDER", `Resource ${id} not found, considering it already deleted`);
+                return; // Continue with destroy operation
+            }
+            
+            // For other errors, log and throw
             debugLog("PROVIDER", `Error deleting resource: ${error}`);
             throw error;
         }
     }
 
-    async diff(id: pulumi.ID, urn: pulumi.URN, olds: any, news: any): Promise<provider.DiffResult> {
-        debugLog("PROVIDER", `Diffing resource: ${id} (${urn})`);
-        
-        const resourceType = this.getResourceTypeFromURN(urn);
-        const handler = ResourceRegistry.getHandler(resourceType);
-        
-        try {
-            const result = handler.diff(olds, news);
-            debugLog("PROVIDER", `Diff completed: changes=${result.changes}, replaces=${result.replaces?.join(', ') || 'none'}`);
-            return result;
-        } catch (error) {
-            debugLog("PROVIDER", `Error diffing resource: ${error}`);
-            throw error;
-        }
-    }
-
     private getResourceTypeFromURN(urn: pulumi.URN): string {
-        const parts = urn.split('::');
-        if (parts.length >= 3) {
-            return parts[2];
-        }
-        throw new Error(`Invalid URN format: ${urn}`);
+        const parts = urn.split("::");
+        return parts[2];
     }
 } 
