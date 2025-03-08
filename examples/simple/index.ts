@@ -28,13 +28,9 @@ const assistant = new Assistant("test-assistant", {
     model: "gpt-4-turbo-preview",
     instructions: "You are a helpful assistant that specializes in testing Pulumi providers.",
     tools: [{ type: "code_interpreter" }, { type: "file_search" }],
-    // Include fileIds for backward compatibility
-    fileIds: [],
-    // Add metadata without vectorStoreId
     metadata: sharedMetadata,
     // Use toolResources with the flattened structure that the SDK expects
     toolResources: {
-        "codeInterpreter.fileIds": "",
         "fileSearch.vectorStoreIds": vectorStore.id
     },
     temperature: 1,
