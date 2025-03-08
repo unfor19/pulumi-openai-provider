@@ -26,6 +26,7 @@ class AssistantArgs:
                  metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  response_format: Optional[pulumi.Input[str]] = None,
                  temperature: Optional[pulumi.Input[float]] = None,
+                 tool_resources: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  tools: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]] = None,
                  top_p: Optional[pulumi.Input[float]] = None):
         """
@@ -37,6 +38,7 @@ class AssistantArgs:
         :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the assistant.
         :param pulumi.Input[str] response_format: The format of the response. Can be 'auto' or 'json_object'.
         :param pulumi.Input[float] temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        :param pulumi.Input[Mapping[str, pulumi.Input[str]]] tool_resources: Tool resources for the assistant
         :param pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]] tools: A list of tools enabled on the assistant.
         :param pulumi.Input[float] top_p: An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
         """
@@ -52,6 +54,8 @@ class AssistantArgs:
             pulumi.set(__self__, "response_format", response_format)
         if temperature is not None:
             pulumi.set(__self__, "temperature", temperature)
+        if tool_resources is not None:
+            pulumi.set(__self__, "tool_resources", tool_resources)
         if tools is not None:
             pulumi.set(__self__, "tools", tools)
         if top_p is not None:
@@ -142,6 +146,18 @@ class AssistantArgs:
         pulumi.set(self, "temperature", value)
 
     @property
+    @pulumi.getter(name="toolResources")
+    def tool_resources(self) -> Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]]:
+        """
+        Tool resources for the assistant
+        """
+        return pulumi.get(self, "tool_resources")
+
+    @tool_resources.setter
+    def tool_resources(self, value: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]]):
+        pulumi.set(self, "tool_resources", value)
+
+    @property
     @pulumi.getter
     def tools(self) -> Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]]:
         """
@@ -178,6 +194,7 @@ class Assistant(pulumi.CustomResource):
                  name: Optional[pulumi.Input[str]] = None,
                  response_format: Optional[pulumi.Input[str]] = None,
                  temperature: Optional[pulumi.Input[float]] = None,
+                 tool_resources: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  tools: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]] = None,
                  top_p: Optional[pulumi.Input[float]] = None,
                  __props__=None):
@@ -192,6 +209,7 @@ class Assistant(pulumi.CustomResource):
         :param pulumi.Input[str] name: The name of the assistant.
         :param pulumi.Input[str] response_format: The format of the response. Can be 'auto' or 'json_object'.
         :param pulumi.Input[float] temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        :param pulumi.Input[Mapping[str, pulumi.Input[str]]] tool_resources: Tool resources for the assistant
         :param pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]] tools: A list of tools enabled on the assistant.
         :param pulumi.Input[float] top_p: An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
         """
@@ -225,6 +243,7 @@ class Assistant(pulumi.CustomResource):
                  name: Optional[pulumi.Input[str]] = None,
                  response_format: Optional[pulumi.Input[str]] = None,
                  temperature: Optional[pulumi.Input[float]] = None,
+                 tool_resources: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  tools: Optional[pulumi.Input[Sequence[pulumi.Input[Mapping[str, pulumi.Input[str]]]]]] = None,
                  top_p: Optional[pulumi.Input[float]] = None,
                  __props__=None):
@@ -247,6 +266,7 @@ class Assistant(pulumi.CustomResource):
             __props__.__dict__["name"] = name
             __props__.__dict__["response_format"] = response_format
             __props__.__dict__["temperature"] = temperature
+            __props__.__dict__["tool_resources"] = tool_resources
             __props__.__dict__["tools"] = tools
             __props__.__dict__["top_p"] = top_p
             __props__.__dict__["created_at"] = None
@@ -284,6 +304,7 @@ class Assistant(pulumi.CustomResource):
         __props__.__dict__["object"] = None
         __props__.__dict__["response_format"] = None
         __props__.__dict__["temperature"] = None
+        __props__.__dict__["tool_resources"] = None
         __props__.__dict__["tools"] = None
         __props__.__dict__["top_p"] = None
         return Assistant(resource_name, opts=opts, __props__=__props__)
@@ -367,6 +388,14 @@ class Assistant(pulumi.CustomResource):
         What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
         """
         return pulumi.get(self, "temperature")
+
+    @property
+    @pulumi.getter(name="toolResources")
+    def tool_resources(self) -> pulumi.Output[Optional[Mapping[str, str]]]:
+        """
+        Tool resources for the assistant
+        """
+        return pulumi.get(self, "tool_resources")
 
     @property
     @pulumi.getter

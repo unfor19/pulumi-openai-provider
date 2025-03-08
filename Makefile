@@ -223,6 +223,7 @@ example-simple-install: ## Install dependencies for the simple example and link 
 	cd ${WORKING_DIR}/provider/cmd/${PROVIDER}/bin && yarn link && \
 	cd ${WORKING_DIR}/examples/simple && \
 		yarn install && \
+		sed -i.bak -e "s/\$${VERSION}/$(VERSION)/g" ./node_modules/@pulumi/openai/package.json && \
 		yarn link "@pulumi/openai" && \
 		yarn tsc --version
 
@@ -329,7 +330,8 @@ build_nodejs_sdk:: gen_nodejs_sdk ## Build Node.js SDK
 		rm ./bin/package.json.bak
 
 install_nodejs_sdk:: build_nodejs_sdk ## Install Node.js SDK
-	yarn link --cwd ${WORKING_DIR}/sdk/nodejs/bin
+	yarn link --cwd ${WORKING_DIR}/sdk/nodejs/bin && \
+	yarn link "@pulumi/openai"
 
 
 # Python SDK

@@ -1,14 +1,4 @@
 import { Assistant, VectorStore } from "@pulumi/openai";
-// Create an OpenAI Assistant
-const assistant = new Assistant("test-assistant", {
-    name: "Test Assistant",
-    model: "gpt-4-turbo-preview",
-    instructions: "You are a helpful assistant that specializes in testing Pulumi providers.",
-    tools: [{ type: "code_interpreter" }],
-    temperature: 1,
-    topP: 1,
-    responseFormat: "auto",
-});
 
 // Create an OpenAI Vector Store
 const vectorStore = new VectorStore("test-vector-store", {
@@ -17,8 +7,6 @@ const vectorStore = new VectorStore("test-vector-store", {
         purpose: "testing",
         environment: "development"
     },
-    // Optional: Add file IDs to the vector store
-    // fileIds: ["file-abc123", "file-def456"],
     
     // Optional: Set an expiration policy for the vector store
     expiresAfter: {
@@ -31,6 +19,24 @@ const vectorStore = new VectorStore("test-vector-store", {
     //     type: "auto"
     // }
 });
+
+// Create an OpenAI Assistant
+const assistant = new Assistant("test-assistant", {
+    name: "Test Assistant",
+    model: "gpt-4-turbo-preview",
+    instructions: "You are a helpful assistant that specializes in testing Pulumi providers.",
+    tools: [{ type: "code_interpreter" }, { type: "file_search" }],
+    // Use fileIds for backward compatibility
+    fileIds: [],
+    toolResources: {
+        "codeInterpreter.fileIds": "",
+        "fileSearch.vectorStoreIds": vectorStore.id
+    },
+    temperature: 1,
+    topP: 1,
+    responseFormat: "auto",
+});
+
 
 // Export the assistant properties
 export const assistantName = assistant.name;

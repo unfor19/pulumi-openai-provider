@@ -72,6 +72,10 @@ export class Assistant extends pulumi.CustomResource {
      */
     public readonly temperature!: pulumi.Output<number | undefined>;
     /**
+     * Tool resources for the assistant
+     */
+    public readonly toolResources!: pulumi.Output<{[key: string]: string} | undefined>;
+    /**
      * A list of tools enabled on the assistant.
      */
     public readonly tools!: pulumi.Output<{[key: string]: string}[] | undefined>;
@@ -104,6 +108,7 @@ export class Assistant extends pulumi.CustomResource {
             resourceInputs["name"] = args ? args.name : undefined;
             resourceInputs["responseFormat"] = args ? args.responseFormat : undefined;
             resourceInputs["temperature"] = args ? args.temperature : undefined;
+            resourceInputs["toolResources"] = args ? args.toolResources : undefined;
             resourceInputs["tools"] = args ? args.tools : undefined;
             resourceInputs["topP"] = args ? args.topP : undefined;
             resourceInputs["createdAt"] = undefined /*out*/;
@@ -120,6 +125,7 @@ export class Assistant extends pulumi.CustomResource {
             resourceInputs["object"] = undefined /*out*/;
             resourceInputs["responseFormat"] = undefined /*out*/;
             resourceInputs["temperature"] = undefined /*out*/;
+            resourceInputs["toolResources"] = undefined /*out*/;
             resourceInputs["tools"] = undefined /*out*/;
             resourceInputs["topP"] = undefined /*out*/;
         }
@@ -160,6 +166,10 @@ export interface AssistantArgs {
      * What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
      */
     temperature?: pulumi.Input<number>;
+    /**
+     * Tool resources for the assistant
+     */
+    toolResources?: pulumi.Input<{[key: string]: pulumi.Input<string>}>;
     /**
      * A list of tools enabled on the assistant.
      */
