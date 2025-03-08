@@ -15,13 +15,20 @@ export class AssistantResource implements OpenAIResource {
             return this.preview(inputs);
         }
 
-        debugLog("ASSISTANT", "Creating assistant with inputs:", inputs);
+        debugLog("ASSISTANT", "Creating assistant with inputs:", JSON.stringify(inputs, null, 2));
         const createParams: AssistantCreateParams = {
             name: inputs.name,
             instructions: inputs.instructions,
             model: inputs.model,
             tools: inputs.tools || [],
-            tool_resources: inputs.fileIds ? {
+            tool_resources: inputs.toolResources ? {
+                code_interpreter: inputs.toolResources["codeInterpreter.fileIds"] ? {
+                    file_ids: typeof inputs.toolResources["codeInterpreter.fileIds"] === "string" ? (inputs.toolResources["codeInterpreter.fileIds"].startsWith("[") ? JSON.parse(inputs.toolResources["codeInterpreter.fileIds"]) : [inputs.toolResources["codeInterpreter.fileIds"]]) : inputs.toolResources["codeInterpreter.fileIds"]
+                } : undefined,
+                file_search: inputs.toolResources["fileSearch.vectorStoreIds"] ? {
+                    vector_store_ids: typeof inputs.toolResources["fileSearch.vectorStoreIds"] === "string" ? (inputs.toolResources["fileSearch.vectorStoreIds"].startsWith("[") ? JSON.parse(inputs.toolResources["fileSearch.vectorStoreIds"]) : [inputs.toolResources["fileSearch.vectorStoreIds"]]) : inputs.toolResources["fileSearch.vectorStoreIds"]
+                } : undefined
+            } : inputs.fileIds ? {
                 code_interpreter: {
                     file_ids: inputs.fileIds
                 }
@@ -65,7 +72,14 @@ export class AssistantResource implements OpenAIResource {
             instructions: news.instructions,
             model: news.model,
             tools: news.tools || [],
-            tool_resources: news.fileIds ? {
+            tool_resources: news.toolResources ? {
+                code_interpreter: news.toolResources["codeInterpreter.fileIds"] ? {
+                    file_ids: typeof news.toolResources["codeInterpreter.fileIds"] === "string" ? JSON.parse(news.toolResources["codeInterpreter.fileIds"]) : news.toolResources["codeInterpreter.fileIds"]
+                } : undefined,
+                file_search: news.toolResources["fileSearch.vectorStoreIds"] ? {
+                    vector_store_ids: typeof news.toolResources["fileSearch.vectorStoreIds"] === "string" ? (news.toolResources["fileSearch.vectorStoreIds"].startsWith("[") ? JSON.parse(news.toolResources["fileSearch.vectorStoreIds"]) : [news.toolResources["fileSearch.vectorStoreIds"]]) : news.toolResources["fileSearch.vectorStoreIds"]
+                } : undefined
+            } : news.fileIds ? {
                 code_interpreter: {
                     file_ids: news.fileIds
                 }
@@ -237,6 +251,23 @@ export class AssistantResource implements OpenAIResource {
     }
 
     private mapAssistantToOutputs(assistant: any) {
+        // Prepare toolResources if tool_resources exists
+        let toolResources: any = undefined;
+        
+        if (assistant.tool_resources) {
+            toolResources = {};
+            
+            // Handle code_interpreter
+            if (assistant.tool_resources.code_interpreter?.file_ids) {
+                toolResources["codeInterpreter.fileIds"] = assistant.tool_resources.code_interpreter.file_ids;
+            }
+            
+            // Handle file_search
+            if (assistant.tool_resources.file_search?.vector_store_ids) {
+                toolResources["fileSearch.vectorStoreIds"] = assistant.tool_resources.file_search.vector_store_ids;
+            }
+        }
+        
         return {
             id: assistant.id,
             createdAt: assistant.created_at,
@@ -246,6 +277,7 @@ export class AssistantResource implements OpenAIResource {
             model: assistant.model,
             tools: assistant.tools,
             fileIds: assistant.tool_resources?.code_interpreter?.file_ids,
+            toolResources: toolResources,
             metadata: assistant.metadata || {},
             temperature: assistant.temperature,
             topP: assistant.top_p,

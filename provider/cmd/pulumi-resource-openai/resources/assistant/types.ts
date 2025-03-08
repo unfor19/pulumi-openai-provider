@@ -2,6 +2,31 @@ import * as pulumi from "@pulumi/pulumi";
 import { type AssistantCreateParams } from "openai/resources/beta/assistants";
 
 /**
+ * Tool resources for the assistant
+ */
+export interface ToolResources {
+    /**
+     * Code interpreter tool resources
+     */
+    code_interpreter?: {
+        /**
+         * File IDs for the code interpreter
+         */
+        file_ids: string[];
+    };
+
+    /**
+     * File search tool resources
+     */
+    file_search?: {
+        /**
+         * Vector store IDs for the file search
+         */
+        vector_store_ids: string[];
+    };
+}
+
+/**
  * Arguments for creating an OpenAI Assistant
  */
 export interface AssistantArgs {
@@ -26,9 +51,15 @@ export interface AssistantArgs {
     tools?: pulumi.Input<AssistantCreateParams['tools']>;
 
     /**
-     * The file IDs attached to this assistant
+     * The file IDs attached to this assistant (for code_interpreter)
+     * @deprecated Use toolResources instead
      */
     fileIds?: pulumi.Input<string[]>;
+
+    /**
+     * Tool resources for the assistant
+     */
+    toolResources?: pulumi.Input<ToolResources>;
 
     /**
      * Metadata associated with the assistant
@@ -91,9 +122,15 @@ export class Assistant extends pulumi.CustomResource {
     public readonly tools!: pulumi.Output<AssistantCreateParams['tools'] | undefined>;
 
     /**
-     * The file IDs attached to this assistant
+     * The file IDs attached to this assistant (for code_interpreter)
+     * @deprecated Use toolResources instead
      */
     public readonly fileIds!: pulumi.Output<string[] | undefined>;
+
+    /**
+     * Tool resources for the assistant
+     */
+    public readonly toolResources!: pulumi.Output<ToolResources | undefined>;
 
     /**
      * Metadata associated with the assistant

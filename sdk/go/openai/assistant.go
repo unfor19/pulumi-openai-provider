@@ -35,6 +35,8 @@ type Assistant struct {
 	ResponseFormat pulumi.StringPtrOutput `pulumi:"responseFormat"`
 	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 	Temperature pulumi.Float64PtrOutput `pulumi:"temperature"`
+	// Tool resources for the assistant
+	ToolResources pulumi.StringMapOutput `pulumi:"toolResources"`
 	// A list of tools enabled on the assistant.
 	Tools pulumi.StringMapArrayOutput `pulumi:"tools"`
 	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
@@ -101,6 +103,8 @@ type assistantArgs struct {
 	ResponseFormat *string `pulumi:"responseFormat"`
 	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 	Temperature *float64 `pulumi:"temperature"`
+	// Tool resources for the assistant
+	ToolResources map[string]string `pulumi:"toolResources"`
 	// A list of tools enabled on the assistant.
 	Tools []map[string]string `pulumi:"tools"`
 	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
@@ -123,6 +127,8 @@ type AssistantArgs struct {
 	ResponseFormat pulumi.StringPtrInput
 	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 	Temperature pulumi.Float64PtrInput
+	// Tool resources for the assistant
+	ToolResources pulumi.StringMapInput
 	// A list of tools enabled on the assistant.
 	Tools pulumi.StringMapArrayInput
 	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
@@ -264,6 +270,11 @@ func (o AssistantOutput) ResponseFormat() pulumi.StringPtrOutput {
 // What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 func (o AssistantOutput) Temperature() pulumi.Float64PtrOutput {
 	return o.ApplyT(func(v *Assistant) pulumi.Float64PtrOutput { return v.Temperature }).(pulumi.Float64PtrOutput)
+}
+
+// Tool resources for the assistant
+func (o AssistantOutput) ToolResources() pulumi.StringMapOutput {
+	return o.ApplyT(func(v *Assistant) pulumi.StringMapOutput { return v.ToolResources }).(pulumi.StringMapOutput)
 }
 
 // A list of tools enabled on the assistant.

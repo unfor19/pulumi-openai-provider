@@ -27,3 +27,4 @@ ci-scripts/
 /provider/cmd/pulumi-resource-*/schema.json
 
 !.github
+*.bak

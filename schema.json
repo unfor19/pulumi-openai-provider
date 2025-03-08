@@ -59,6 +59,36 @@
                     },
                     "description": "A list of file IDs attached to this assistant."
                 },
+                "toolResources": {
+                    "type": "object",
+                    "properties": {
+                        "codeInterpreter": {
+                            "type": "object",
+                            "properties": {
+                                "fileIds": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "File IDs for the code interpreter"
+                                }
+                            }
+                        },
+                        "fileSearch": {
+                            "type": "object",
+                            "properties": {
+                                "vectorStoreIds": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Vector store IDs for the file search"
+                                }
+                            }
+                        }
+                    },
+                    "description": "Tool resources for the assistant"
+                },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
@@ -127,6 +157,36 @@
                         "type": "string"
                     },
                     "description": "A list of file IDs attached to this assistant."
+                },
+                "toolResources": {
+                    "type": "object",
+                    "properties": {
+                        "codeInterpreter": {
+                            "type": "object",
+                            "properties": {
+                                "fileIds": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "File IDs for the code interpreter"
+                                }
+                            }
+                        },
+                        "fileSearch": {
+                            "type": "object",
+                            "properties": {
+                                "vectorStoreIds": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Vector store IDs for the file search"
+                                }
+                            }
+                        }
+                    },
+                    "description": "Tool resources for the assistant"
                 },
                 "metadata": {
                     "type": "object",

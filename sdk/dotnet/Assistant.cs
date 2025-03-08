@@ -73,6 +73,12 @@ namespace Pulumi.Openai
         public Output<double?> Temperature { get; private set; } = null!;
 
         /// <summary>
+        /// Tool resources for the assistant
+        /// </summary>
+        [Output("toolResources")]
+        public Output<ImmutableDictionary<string, string>?> ToolResources { get; private set; } = null!;
+
+        /// <summary>
         /// A list of tools enabled on the assistant.
         /// </summary>
         [Output("tools")]
@@ -182,6 +188,18 @@ namespace Pulumi.Openai
         /// </summary>
         [Input("temperature")]
         public Input<double>? Temperature { get; set; }
+
+        [Input("toolResources")]
+        private InputMap<string>? _toolResources;
+
+        /// <summary>
+        /// Tool resources for the assistant
+        /// </summary>
+        public InputMap<string> ToolResources
+        {
+            get => _toolResources ?? (_toolResources = new InputMap<string>());
+            set => _toolResources = value;
+        }
 
         [Input("tools")]
         private InputList<ImmutableDictionary<string, string>>? _tools;
