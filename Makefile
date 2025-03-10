@@ -75,6 +75,20 @@ endif
 ifndef SRC_DIR
 SRC_DIR:=${ROOT_DIR}/src
 endif
+
+# Equals "true" or "1"
+ifeq (${PULUMI_OPENAI_PROVIDER_DEBUG}, true)
+PULUMI_OPENAI_PROVIDER_DEBUG_MODE:=true
+endif
+
+ifeq (${PULUMI_OPENAI_PROVIDER_DEBUG}, 1)
+PULUMI_OPENAI_PROVIDER_DEBUG_MODE:=true
+endif
+
+ifeq (${PULUMI_OPENAI_PROVIDER_DEBUG_MODE}, true)
+PULUMI_LOG_LEVEL_ARG:=--logtostderr -v3
+endif
+
 # --- Pulumi Provider Settings --- END -------------------------------------------------
 
 # Removes blank rows - fgrep -v fgrep
@@ -241,12 +255,12 @@ pulumi-stack-init: ## Initialize a new Pulumi stack
 
 pulumi-preview: ## Preview Pulumi changes
 	@echo "Running Pulumi preview..."
-	@cd ${WORKING_DIR}/examples/simple && pulumi preview --diff
+	@cd ${WORKING_DIR}/examples/simple && pulumi preview --diff ${PULUMI_LOG_LEVEL_ARG}
 
 preview: pulumi-preview
 
 pulumi-up: ## Apply Pulumi changes
-	@cd ${WORKING_DIR}/examples/simple && pulumi up --diff
+	@cd ${WORKING_DIR}/examples/simple && pulumi up --diff ${PULUMI_LOG_LEVEL_ARG}
 
 up: pulumi-up
 
