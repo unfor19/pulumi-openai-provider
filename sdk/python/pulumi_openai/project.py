@@ -20,23 +20,15 @@ __all__ = ['ProjectArgs', 'Project']
 class ProjectArgs:
     def __init__(__self__, *,
                  name: pulumi.Input[str],
-                 api_key: Optional[pulumi.Input[str]] = None,
-                 description: Optional[pulumi.Input[str]] = None,
-                 metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None):
+                 api_key: Optional[pulumi.Input[str]] = None):
         """
         The set of arguments for constructing a Project resource.
         :param pulumi.Input[str] name: The name of the project.
         :param pulumi.Input[str] api_key: Optional OpenAI API key to use for this specific resource.
-        :param pulumi.Input[str] description: The description of the project.
-        :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the project.
         """
         pulumi.set(__self__, "name", name)
         if api_key is not None:
             pulumi.set(__self__, "api_key", api_key)
-        if description is not None:
-            pulumi.set(__self__, "description", description)
-        if metadata is not None:
-            pulumi.set(__self__, "metadata", metadata)
 
     @property
     @pulumi.getter
@@ -62,30 +54,6 @@ class ProjectArgs:
     def api_key(self, value: Optional[pulumi.Input[str]]):
         pulumi.set(self, "api_key", value)
 
-    @property
-    @pulumi.getter
-    def description(self) -> Optional[pulumi.Input[str]]:
-        """
-        The description of the project.
-        """
-        return pulumi.get(self, "description")
-
-    @description.setter
-    def description(self, value: Optional[pulumi.Input[str]]):
-        pulumi.set(self, "description", value)
-
-    @property
-    @pulumi.getter
-    def metadata(self) -> Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]]:
-        """
-        Set of key-value pairs that can be used to store additional information about the project.
-        """
-        return pulumi.get(self, "metadata")
-
-    @metadata.setter
-    def metadata(self, value: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]]):
-        pulumi.set(self, "metadata", value)
-
 
 class Project(pulumi.CustomResource):
     @overload
@@ -93,8 +61,6 @@ class Project(pulumi.CustomResource):
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
                  api_key: Optional[pulumi.Input[str]] = None,
-                 description: Optional[pulumi.Input[str]] = None,
-                 metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  name: Optional[pulumi.Input[str]] = None,
                  __props__=None):
         """
@@ -103,8 +69,6 @@ class Project(pulumi.CustomResource):
         :param str resource_name: The name of the resource.
         :param pulumi.ResourceOptions opts: Options for the resource.
         :param pulumi.Input[str] api_key: Optional OpenAI API key to use for this specific resource.
-        :param pulumi.Input[str] description: The description of the project.
-        :param pulumi.Input[Mapping[str, pulumi.Input[str]]] metadata: Set of key-value pairs that can be used to store additional information about the project.
         :param pulumi.Input[str] name: The name of the project.
         """
         ...
@@ -132,8 +96,6 @@ class Project(pulumi.CustomResource):
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
                  api_key: Optional[pulumi.Input[str]] = None,
-                 description: Optional[pulumi.Input[str]] = None,
-                 metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
                  name: Optional[pulumi.Input[str]] = None,
                  __props__=None):
         opts = pulumi.ResourceOptions.merge(_utilities.get_resource_opts_defaults(), opts)
@@ -145,8 +107,6 @@ class Project(pulumi.CustomResource):
             __props__ = ProjectArgs.__new__(ProjectArgs)
 
             __props__.__dict__["api_key"] = None if api_key is None else pulumi.Output.secret(api_key)
-            __props__.__dict__["description"] = description
-            __props__.__dict__["metadata"] = metadata
             if name is None and not opts.urn:
                 raise TypeError("Missing required property 'name'")
             __props__.__dict__["name"] = name
@@ -182,9 +142,7 @@ class Project(pulumi.CustomResource):
         __props__.__dict__["api_key"] = None
         __props__.__dict__["archived_at"] = None
         __props__.__dict__["created_at"] = None
-        __props__.__dict__["description"] = None
         __props__.__dict__["id"] = None
-        __props__.__dict__["metadata"] = None
         __props__.__dict__["name"] = None
         __props__.__dict__["object"] = None
         __props__.__dict__["status"] = None
@@ -216,27 +174,11 @@ class Project(pulumi.CustomResource):
 
     @property
     @pulumi.getter
-    def description(self) -> pulumi.Output[Optional[str]]:
-        """
-        The description of the project.
-        """
-        return pulumi.get(self, "description")
-
-    @property
-    @pulumi.getter
     def id(self) -> pulumi.Output[str]:
         """
         The unique identifier for the project.
         """
         return pulumi.get(self, "id")
-
-    @property
-    @pulumi.getter
-    def metadata(self) -> pulumi.Output[Optional[Mapping[str, str]]]:
-        """
-        Set of key-value pairs that can be used to store additional information about the project.
-        """
-        return pulumi.get(self, "metadata")
 
     @property
     @pulumi.getter

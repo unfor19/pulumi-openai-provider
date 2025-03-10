@@ -47,17 +47,9 @@ export class Project extends pulumi.CustomResource {
      */
     public /*out*/ readonly createdAt!: pulumi.Output<number>;
     /**
-     * The description of the project.
-     */
-    public readonly description!: pulumi.Output<string | undefined>;
-    /**
      * The unique identifier for the project.
      */
     public /*out*/ readonly id!: pulumi.Output<string>;
-    /**
-     * Set of key-value pairs that can be used to store additional information about the project.
-     */
-    public readonly metadata!: pulumi.Output<{[key: string]: string} | undefined>;
     /**
      * The name of the project.
      */
@@ -86,8 +78,6 @@ export class Project extends pulumi.CustomResource {
                 throw new Error("Missing required property 'name'");
             }
             resourceInputs["apiKey"] = args?.apiKey ? pulumi.secret(args.apiKey) : undefined;
-            resourceInputs["description"] = args ? args.description : undefined;
-            resourceInputs["metadata"] = args ? args.metadata : undefined;
             resourceInputs["name"] = args ? args.name : undefined;
             resourceInputs["archivedAt"] = undefined /*out*/;
             resourceInputs["createdAt"] = undefined /*out*/;
@@ -98,9 +88,7 @@ export class Project extends pulumi.CustomResource {
             resourceInputs["apiKey"] = undefined /*out*/;
             resourceInputs["archivedAt"] = undefined /*out*/;
             resourceInputs["createdAt"] = undefined /*out*/;
-            resourceInputs["description"] = undefined /*out*/;
             resourceInputs["id"] = undefined /*out*/;
-            resourceInputs["metadata"] = undefined /*out*/;
             resourceInputs["name"] = undefined /*out*/;
             resourceInputs["object"] = undefined /*out*/;
             resourceInputs["status"] = undefined /*out*/;
@@ -120,14 +108,6 @@ export interface ProjectArgs {
      * Optional OpenAI API key to use for this specific resource.
      */
     apiKey?: pulumi.Input<string>;
-    /**
-     * The description of the project.
-     */
-    description?: pulumi.Input<string>;
-    /**
-     * Set of key-value pairs that can be used to store additional information about the project.
-     */
-    metadata?: pulumi.Input<{[key: string]: pulumi.Input<string>}>;
     /**
      * The name of the project.
      */

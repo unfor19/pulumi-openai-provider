@@ -259,7 +259,10 @@
                             "description": "The number of days after which the vector store will expire."
                         }
                     },
-                    "required": ["anchor", "days"],
+                    "required": [
+                        "anchor",
+                        "days"
+                    ],
                     "description": "The expiration policy for the vector store."
                 },
                 "chunkingStrategy": {
@@ -388,17 +391,6 @@
                     "type": "string",
                     "description": "The name of the project."
                 },
-                "description": {
-                    "type": "string",
-                    "description": "The description of the project."
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "description": "Set of key-value pairs that can be used to store additional information about the project."
-                },
                 "apiKey": {
                     "type": "string",
                     "description": "Optional OpenAI API key to use for this specific resource.",
@@ -424,17 +416,6 @@
                 "name": {
                     "type": "string",
                     "description": "The name of the project."
-                },
-                "description": {
-                    "type": "string",
-                    "description": "The description of the project."
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "description": "Set of key-value pairs that can be used to store additional information about the project."
                 },
                 "status": {
                     "type": "string",

@@ -22,12 +22,8 @@ type Project struct {
 	ArchivedAt pulumi.Float64PtrOutput `pulumi:"archivedAt"`
 	// The Unix timestamp (in seconds) for when the project was created.
 	CreatedAt pulumi.Float64Output `pulumi:"createdAt"`
-	// The description of the project.
-	Description pulumi.StringPtrOutput `pulumi:"description"`
 	// The unique identifier for the project.
 	Id pulumi.StringOutput `pulumi:"id"`
-	// Set of key-value pairs that can be used to store additional information about the project.
-	Metadata pulumi.StringMapOutput `pulumi:"metadata"`
 	// The name of the project.
 	Name pulumi.StringOutput `pulumi:"name"`
 	// The object type, which is always 'organization.project'.
@@ -88,10 +84,6 @@ func (ProjectState) ElementType() reflect.Type {
 type projectArgs struct {
 	// Optional OpenAI API key to use for this specific resource.
 	ApiKey *string `pulumi:"apiKey"`
-	// The description of the project.
-	Description *string `pulumi:"description"`
-	// Set of key-value pairs that can be used to store additional information about the project.
-	Metadata map[string]string `pulumi:"metadata"`
 	// The name of the project.
 	Name string `pulumi:"name"`
 }
@@ -100,10 +92,6 @@ type projectArgs struct {
 type ProjectArgs struct {
 	// Optional OpenAI API key to use for this specific resource.
 	ApiKey pulumi.StringPtrInput
-	// The description of the project.
-	Description pulumi.StringPtrInput
-	// Set of key-value pairs that can be used to store additional information about the project.
-	Metadata pulumi.StringMapInput
 	// The name of the project.
 	Name pulumi.StringInput
 }
@@ -210,19 +198,9 @@ func (o ProjectOutput) CreatedAt() pulumi.Float64Output {
 	return o.ApplyT(func(v *Project) pulumi.Float64Output { return v.CreatedAt }).(pulumi.Float64Output)
 }
 
-// The description of the project.
-func (o ProjectOutput) Description() pulumi.StringPtrOutput {
-	return o.ApplyT(func(v *Project) pulumi.StringPtrOutput { return v.Description }).(pulumi.StringPtrOutput)
-}
-
 // The unique identifier for the project.
 func (o ProjectOutput) Id() pulumi.StringOutput {
 	return o.ApplyT(func(v *Project) pulumi.StringOutput { return v.Id }).(pulumi.StringOutput)
-}
-
-// Set of key-value pairs that can be used to store additional information about the project.
-func (o ProjectOutput) Metadata() pulumi.StringMapOutput {
-	return o.ApplyT(func(v *Project) pulumi.StringMapOutput { return v.Metadata }).(pulumi.StringMapOutput)
 }
 
 // The name of the project.

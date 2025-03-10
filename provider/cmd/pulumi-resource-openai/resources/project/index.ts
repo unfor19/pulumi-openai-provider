@@ -21,7 +21,7 @@ export class ProjectResource extends BaseResource {
             return this.preview(inputs);
         }
 
-        debugLog("PROJECT", "Creating project with inputs:", JSON.stringify(inputs, null, 2));
+        debugLog("PROJECT", "Creating project with inputs:", inputs);
 
         try {
             // First, check if a project with the same name already exists
@@ -44,8 +44,6 @@ export class ProjectResource extends BaseResource {
                 },
                 body: JSON.stringify({
                     name: inputs.name,
-                    description: inputs.description,
-                    metadata: inputs.metadata || {},
                 }),
             });
 
@@ -100,7 +98,7 @@ export class ProjectResource extends BaseResource {
                             }
 
                             const existingProject = await getResponse.json();
-                            debugLog("PROJECT", "Found existing project:", JSON.stringify(existingProject, null, 2));
+                            debugLog("PROJECT", "Found existing project:", JSON.stringify(existingProject));
 
                             // Map the existing project to outputs
                             const mappedOutputs = this.mapProjectToOutputs({
@@ -142,10 +140,8 @@ export class ProjectResource extends BaseResource {
             let project;
             try {
                 project = JSON.parse(responseText);
-                // Log the raw project response for debugging
-                debugLog("PROJECT", "Raw project response:", JSON.stringify(project, null, 2));
+                debugLog("PROJECT", "Raw project response:", project);
             } catch (error: any) {
-                // If we can't parse the response as JSON, log the raw response
                 debugLog("PROJECT", "Non-JSON response:", responseText);
                 throw new Error(`Failed to parse response as JSON. The OpenAI Projects API might not be publicly available yet or might require special access. Raw response: ${responseText.substring(0, 100)}...`);
             }
@@ -164,12 +160,6 @@ export class ProjectResource extends BaseResource {
             };
         } catch (error: any) {
             debugLog("PROJECT", "Error creating project:", error);
-
-            // Provide a more informative error message
-            if (error.message.includes("Unexpected token")) {
-                throw new Error("The OpenAI Projects API endpoint returned an invalid response. The Projects API might not be publicly available yet or might require special access.");
-            }
-
             throw error;
         }
     }
@@ -288,7 +278,7 @@ export class ProjectResource extends BaseResource {
             // Make a direct API call to update a project
             // The correct endpoint is /organization/projects/{id}, not /projects/{id}
             const response = await fetch(`${baseUrl}/organization/projects/${id}`, {
-                method: "PATCH",
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${apiKey}`,
@@ -296,8 +286,6 @@ export class ProjectResource extends BaseResource {
                 },
                 body: JSON.stringify({
                     name: news.name,
-                    description: news.description,
-                    metadata: news.metadata || {},
                 }),
             });
 
@@ -335,10 +323,8 @@ export class ProjectResource extends BaseResource {
             let project;
             try {
                 project = JSON.parse(responseText);
-                // Log the raw project response for debugging
-                debugLog("PROJECT", "Raw project response (update):", JSON.stringify(project, null, 2));
+                debugLog("PROJECT", "Raw project response:", project);
             } catch (error: any) {
-                // If we can't parse the response as JSON, log the raw response
                 debugLog("PROJECT", "Non-JSON response:", responseText);
                 throw new Error(`Failed to parse response as JSON. The OpenAI Projects API might not be publicly available yet or might require special access. Raw response: ${responseText.substring(0, 100)}...`);
             }
@@ -356,18 +342,12 @@ export class ProjectResource extends BaseResource {
             };
         } catch (error: any) {
             debugLog("PROJECT", "Error updating project:", error);
-
-            // Provide a more informative error message
-            if (error.message.includes("Unexpected token")) {
-                throw new Error("The OpenAI Projects API endpoint returned an invalid response. The Projects API might not be publicly available yet or might require special access.");
-            }
-
             throw error;
         }
     }
 
     async delete(client: OpenAI, id: string): Promise<void> {
-        debugLog("PROJECT", "Deleting project:", id);
+        debugLog("PROJECT", "Archiving project:", id);
 
         try {
             // Since the OpenAI SDK doesn't have a dedicated Projects API,
@@ -375,10 +355,10 @@ export class ProjectResource extends BaseResource {
             const apiKey = client.apiKey;
             const baseUrl = client.baseURL || "https://api.openai.com/v1";
 
-            // Make a direct API call to delete a project
-            // The correct endpoint is /organization/projects/{id}, not /projects/{id}
-            const response = await fetch(`${baseUrl}/organization/projects/${id}`, {
-                method: "DELETE",
+            // Make a direct API call to archive a project
+            // The correct endpoint is /organization/projects/{id}/archive
+            const response = await fetch(`${baseUrl}/organization/projects/${id}/archive`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${apiKey}`,
@@ -404,114 +384,64 @@ export class ProjectResource extends BaseResource {
                 debugLog("PROJECT", "Error response:", response.status, response.statusText);
                 debugLog("PROJECT", "Error data:", errorData);
 
-                // If we get a 404, it means the Projects API endpoint doesn't exist
+                // If we get a 404, it means the Projects API endpoint doesn't exist or the project doesn't exist
                 if (response.status === 404) {
-                    throw new Error(`The OpenAI Projects API endpoint is not available. The Projects API might not be publicly available yet or might require special access. Status: ${response.status} ${response.statusText}`);
+                    throw new Error(`The OpenAI Projects API endpoint is not available or the project with ID '${id}' does not exist. Status: ${response.status} ${response.statusText}`);
                 }
 
-                throw new Error(`Failed to delete project: ${response.status} ${response.statusText} - ${typeof errorData === 'string' ? errorData : JSON.stringify(errorData)}`);
+                throw new Error(`Failed to archive project: ${response.status} ${response.statusText} - ${typeof errorData === 'string' ? errorData : JSON.stringify(errorData)}`);
             }
 
-            debugLog("PROJECT", "Deleted project:", id);
+            debugLog("PROJECT", "Archived project:", id);
         } catch (error: any) {
-            debugLog("PROJECT", "Error deleting project:", error);
-
-            // Provide a more informative error message
-            if (error.message.includes("Unexpected token")) {
-                throw new Error("The OpenAI Projects API endpoint returned an invalid response. The Projects API might not be publicly available yet or might require special access.");
-            }
-
+            debugLog("PROJECT", "Error archiving project:", error);
             throw error;
         }
     }
 
-    diff(olds: any, news: any): provider.DiffResult {
-        debugLog("PROJECT", "Diffing project:", {
-            olds: JSON.stringify(olds, null, 2),
-            news: JSON.stringify(news, null, 2)
-        });
+    public diff(olds: any, news: any): provider.DiffResult {
+        debugLog("[PROJECT]", "Diffing project:", { olds, news });
 
-        // Only compare fields that are part of the resource's inputs
+        // Normalize inputs for comparison
         const oldInputs = {
             name: olds.name || "",
-            description: olds.description || "",
-            metadata: olds.metadata || {},
-            apiKey: olds.apiKey,
+            apiKey: olds.apiKey
         };
 
         const newInputs = {
             name: news.name || "",
-            description: news.description || "",
-            metadata: news.metadata || {},
-            apiKey: news.apiKey,
+            apiKey: news.apiKey
         };
 
-        // Compare the normalized inputs
-        const oldStr = JSON.stringify(oldInputs);
-        const newStr = JSON.stringify(newInputs);
+        debugLog("[PROJECT]", "Comparing normalized inputs:", { oldInputs, newInputs });
 
-        debugLog("PROJECT", "Comparing normalized inputs:", {
-            oldInputs: oldStr,
-            newInputs: newStr
-        });
-
-        if (oldStr === newStr) {
-            debugLog("PROJECT", "No changes detected in inputs");
-            return {
-                changes: false,
-                replaces: [],
-                deleteBeforeReplace: false,
-                stables: ["id", "object", "apiKey", "createdAt", "status", "archivedAt"],
-            };
-        }
-
-        // If we get here, there are changes. Let's identify which fields changed.
         const changes: string[] = [];
 
+        // Compare name
         if (oldInputs.name !== newInputs.name) {
-            debugLog("PROJECT", "Name changed:", {
-                old: oldInputs.name,
-                new: newInputs.name
-            });
+            debugLog("[PROJECT]", "Name changed:", { old: oldInputs.name, new: newInputs.name });
             changes.push("name");
         }
 
-        if (oldInputs.description !== newInputs.description) {
-            debugLog("PROJECT", "Description changed:", {
-                old: oldInputs.description,
-                new: newInputs.description
-            });
-            changes.push("description");
-        }
-
-        // Compare metadata objects
-        const metadataChanged = JSON.stringify(oldInputs.metadata) !== JSON.stringify(newInputs.metadata);
-        if (metadataChanged) {
-            debugLog("PROJECT", "Metadata changed:", {
-                old: oldInputs.metadata,
-                new: newInputs.metadata
-            });
-            changes.push("metadata");
-        }
-
-        // Compare API keys (if they exist)
-        if (oldInputs.apiKey !== newInputs.apiKey) {
-            debugLog("PROJECT", "API key changed");
+        // Compare API key - only if it has changed
+        if (JSON.stringify(oldInputs.apiKey) !== JSON.stringify(newInputs.apiKey)) {
+            debugLog("[PROJECT]", "API key changed");
             changes.push("apiKey");
         }
 
-        debugLog("PROJECT", "Changes detected:", changes);
+        debugLog("[PROJECT]", "Changes detected:", changes);
 
+        // Return diff result
         return {
             changes: changes.length > 0,
             replaces: [],
             deleteBeforeReplace: false,
-            stables: ["id", "object", "apiKey", "createdAt", "status", "archivedAt"],
+            stables: ["id", "object", "created_at", "status", "archived_at"]
         };
     }
 
     check(inputs: any): any {
-        debugLog("PROJECT", "Checking inputs:", JSON.stringify(inputs, null, 2));
+        debugLog("PROJECT", "Checking inputs:", inputs);
 
         // Validate required inputs
         if (!inputs.name) {
@@ -526,11 +456,11 @@ export class ProjectResource extends BaseResource {
         // Normalize inputs to ensure consistent structure
         const normalizedInputs = {
             ...inputs,
-            description: inputs.description || "",
-            metadata: inputs.metadata || {},
+            name: inputs.name,
+            apiKey: inputs.apiKey
         };
 
-        debugLog("PROJECT", "Normalized inputs:", JSON.stringify(normalizedInputs, null, 2));
+        debugLog("PROJECT", "Normalized inputs:", normalizedInputs);
 
         return normalizedInputs;
     }
@@ -651,23 +581,21 @@ export class ProjectResource extends BaseResource {
         // The API might return the project in a 'data' field or directly
         const projectData = project.data || project;
 
-        debugLog("PROJECT", "Mapping project to outputs, input:", JSON.stringify(projectData, null, 2));
+        debugLog("PROJECT", "Mapping project to outputs, input:", projectData);
 
         // Create outputs that exactly match the OpenAI API structure
         const outputs = {
             id: projectData.id,
-            createdAt: projectData.created_at || projectData.createdAt || Math.floor(Date.now() / 1000),
-            object: projectData.object || "organization.project",
             name: projectData.name || "",
-            description: projectData.description || "",
-            metadata: projectData.metadata || {},
-            status: projectData.status || "active",
-            archivedAt: projectData.archived_at || projectData.archivedAt || null,
-            // Include the apiKey if it was provided in the inputs
             apiKey: projectData.apiKey,
+            // Computed fields - use snake_case to match API response
+            created_at: projectData.created_at || Math.floor(Date.now() / 1000),
+            object: "organization.project",
+            status: projectData.status || "active",
+            archived_at: projectData.archived_at || null,
         };
 
-        debugLog("PROJECT", "Mapped outputs:", JSON.stringify(outputs, null, 2));
+        debugLog("PROJECT", "Mapped outputs:", outputs);
 
         return outputs;
     }

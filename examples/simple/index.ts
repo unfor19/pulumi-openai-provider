@@ -14,18 +14,18 @@ const sharedMetadata = {
 const vectorStore = new VectorStore("test-vector-store", {
     name: "Test Vector Store",
     metadata: sharedMetadata,
-    
+
     // Optional: Set an expiration policy for the vector store
     expiresAfter: {
         anchor: "last_active_at",
         days: 30
     },
-    
+
     // Optional: Set a chunking strategy for the vector store
     // chunkingStrategy: {
     //     type: "auto"
     // }
-    
+
     // Use an invalid API key to test our enhanced preview functionality
     // apiKey: vectorStoreApiKey,
     apiKey: process.env.OPENAI_API_KEY_PROJECT,
@@ -50,12 +50,7 @@ const assistant = new Assistant("test-assistant", {
 });
 
 const project = new openai.Project("example-project", {
-    name: "Example Project",
-    description: "A project created via Pulumi",
-    metadata: {
-        createdBy: "pulumi",
-        environment: "development"
-    },
+    name: "Example Project1",
     apiKey: process.env.OPENAI_API_KEY,
 });
 

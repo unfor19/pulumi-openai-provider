@@ -34,22 +34,10 @@ namespace Pulumi.Openai
         public Output<double> CreatedAt { get; private set; } = null!;
 
         /// <summary>
-        /// The description of the project.
-        /// </summary>
-        [Output("description")]
-        public Output<string?> Description { get; private set; } = null!;
-
-        /// <summary>
         /// The unique identifier for the project.
         /// </summary>
         [Output("id")]
         public Output<string> Id { get; private set; } = null!;
-
-        /// <summary>
-        /// Set of key-value pairs that can be used to store additional information about the project.
-        /// </summary>
-        [Output("metadata")]
-        public Output<ImmutableDictionary<string, string>?> Metadata { get; private set; } = null!;
 
         /// <summary>
         /// The name of the project.
@@ -132,24 +120,6 @@ namespace Pulumi.Openai
                 var emptySecret = Output.CreateSecret(0);
                 _apiKey = Output.Tuple<Input<string>?, int>(value, emptySecret).Apply(t => t.Item1);
             }
-        }
-
-        /// <summary>
-        /// The description of the project.
-        /// </summary>
-        [Input("description")]
-        public Input<string>? Description { get; set; }
-
-        [Input("metadata")]
-        private InputMap<string>? _metadata;
-
-        /// <summary>
-        /// Set of key-value pairs that can be used to store additional information about the project.
-        /// </summary>
-        public InputMap<string> Metadata
-        {
-            get => _metadata ?? (_metadata = new InputMap<string>());
-            set => _metadata = value;
         }
 
         /// <summary>
