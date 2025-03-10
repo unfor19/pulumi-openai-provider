@@ -12,12 +12,5 @@
         "forceConsistentCasingInFileNames": true,
         "strict": true
     },
-    "files": [
-        "index.ts",
-        "provider.ts",
-        "resources/base.ts",
-        "resources/registry.ts",
-        "resources/assistant/index.ts",
-        "resources/assistant/types.ts"
-    ]
-} 
+    "include": ["resources/**/*.ts", "index.ts", "utils.ts", "provider.ts"]
+}

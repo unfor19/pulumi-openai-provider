@@ -379,6 +379,84 @@
                 "status",
                 "object"
             ]
+        },
+        "openai:index:Project": {
+            "description": "An OpenAI Project resource. Projects allow you to organize your work in the OpenAI platform. NOTE: The OpenAI Projects API requires an API key with the 'api.management.write' scope, which is typically only available to organization administrators or API keys with specific permissions.",
+            "isComponent": false,
+            "inputProperties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the project."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "The description of the project."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the project."
+                },
+                "apiKey": {
+                    "type": "string",
+                    "description": "Optional OpenAI API key to use for this specific resource.",
+                    "secret": true
+                }
+            },
+            "requiredInputs": [
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The unique identifier for the project."
+                },
+                "createdAt": {
+                    "type": "number",
+                    "description": "The Unix timestamp (in seconds) for when the project was created."
+                },
+                "object": {
+                    "type": "string",
+                    "description": "The object type, which is always 'organization.project'."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the project."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "The description of the project."
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Set of key-value pairs that can be used to store additional information about the project."
+                },
+                "status": {
+                    "type": "string",
+                    "description": "The status of the project (e.g., 'active')."
+                },
+                "archivedAt": {
+                    "type": "number",
+                    "description": "The Unix timestamp (in seconds) for when the project was archived, or null if not archived."
+                },
+                "apiKey": {
+                    "type": "string",
+                    "description": "Optional OpenAI API key used for this specific resource.",
+                    "secret": true
+                }
+            },
+            "required": [
+                "id",
+                "createdAt",
+                "object",
+                "name",
+                "status"
+            ]
         }
     },
     "language": {

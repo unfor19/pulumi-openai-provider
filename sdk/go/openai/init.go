@@ -23,6 +23,8 @@ func (m *module) Construct(ctx *pulumi.Context, name, typ, urn string) (r pulumi
 	switch typ {
 	case "openai:index:Assistant":
 		r = &Assistant{}
+	case "openai:index:Project":
+		r = &Project{}
 	case "openai:index:VectorStore":
 		r = &VectorStore{}
 	default:
