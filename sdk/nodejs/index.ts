@@ -10,6 +10,11 @@ export type Assistant = import("./assistant").Assistant;
 export const Assistant: typeof import("./assistant").Assistant = null as any;
 utilities.lazyLoad(exports, ["Assistant"], () => require("./assistant"));
 
+export { ProjectArgs } from "./project";
+export type Project = import("./project").Project;
+export const Project: typeof import("./project").Project = null as any;
+utilities.lazyLoad(exports, ["Project"], () => require("./project"));
+
 export { ProviderArgs } from "./provider";
 export type Provider = import("./provider").Provider;
 export const Provider: typeof import("./provider").Provider = null as any;
@@ -34,6 +39,8 @@ const _module = {
         switch (type) {
             case "openai:index:Assistant":
                 return new Assistant(name, <any>undefined, { urn })
+            case "openai:index:Project":
+                return new Project(name, <any>undefined, { urn })
             case "openai:index:VectorStore":
                 return new VectorStore(name, <any>undefined, { urn })
             default:

@@ -5,6 +5,8 @@ This repo contains a Pulumi provider for managing OpenAI resources. The provider
 ## Features
 
 - Manage OpenAI Assistants with full CRUD operations
+- Manage OpenAI Vector Stores with full CRUD operations
+- Manage OpenAI Projects with full CRUD operations (requires special permissions)
 - Authentication using OpenAI API keys
 - Support for all Assistant properties including tools, file attachments, and metadata
 - Per-resource API key support allowing different resources to use different API keys
@@ -27,6 +29,16 @@ An example of using the `Assistant` component in TypeScript is in `examples/simp
 Note that the provider plugin (`pulumi-resource-openai`) must be on your `PATH` to be used by Pulumi deployments. By default, running `make install` will create the binary specific to your host environment.
 
 After running `make install`, `pulumi-resource-openai` will be available in the `./bin` directory. You can add this to your path in bash with `export PATH=$PATH:$PWD/bin`.
+
+## OpenAI Vector Store Component Provider
+
+The provider includes a `VectorStore` component resource that allows you to create and manage OpenAI Vector Stores. The component maps to the OpenAI API for Vector Stores and provides a Pulumi-friendly interface for managing these resources.
+
+## OpenAI Project Component Provider
+
+The provider includes a `Project` component resource that allows you to create and manage OpenAI Projects. The component maps to the OpenAI API for Projects and provides a Pulumi-friendly interface for managing these resources.
+
+**Note:** The OpenAI Projects API requires an API key with the `api.management.write` scope, which is typically only available to organization administrators or API keys with specific permissions. If you encounter a 401 Unauthorized error with a message about insufficient permissions, you'll need to use an API key with the appropriate permissions.
 
 ## Prerequisites
 
@@ -200,6 +212,8 @@ This will output detailed logs about API key handling and authentication attempt
 
 ## Example Usage
 
+### Assistant
+
 ```typescript
 import * as pulumi from "@pulumi/pulumi";
 import * as openai from "@pulumi/openai";
@@ -214,6 +228,50 @@ const assistant = new openai.Assistant("my-assistant", {
 
 // Export the assistant ID
 export const assistantId = assistant.id;
+```
+
+### Vector Store
+
+```typescript
+import * as pulumi from "@pulumi/pulumi";
+import * as openai from "@pulumi/openai";
+
+// Create an OpenAI Vector Store
+const vectorStore = new openai.VectorStore("my-vector-store", {
+    name: "My Vector Store",
+    expiresAfter: {
+        anchor: "last_active_at",
+        days: 30
+    },
+    metadata: {
+        environment: "development",
+        purpose: "testing"
+    }
+});
+
+// Export the vector store ID
+export const vectorStoreId = vectorStore.id;
+```
+
+### Project
+
+```typescript
+import * as pulumi from "@pulumi/pulumi";
+import * as openai from "@pulumi/openai";
+
+// Create an OpenAI Project
+// Note: Requires an API key with api.management.write scope
+const project = new openai.Project("my-project", {
+    name: "My Project",
+    description: "A project created via Pulumi",
+    metadata: {
+        environment: "development",
+        createdBy: "pulumi"
+    }
+});
+
+// Export the project ID
+export const projectId = project.id;
 ```
 
 ## Packaging

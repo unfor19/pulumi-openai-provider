@@ -6,6 +6,7 @@ from . import _utilities
 import typing
 # Export this package's modules as members:
 from .assistant import *
+from .project import *
 from .provider import *
 from .vector_store import *
 
@@ -25,6 +26,7 @@ _utilities.register(
   "fqn": "pulumi_openai",
   "classes": {
    "openai:index:Assistant": "Assistant",
+   "openai:index:Project": "Project",
    "openai:index:VectorStore": "VectorStore"
   }
  }
